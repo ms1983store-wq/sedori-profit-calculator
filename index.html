@@ -10,7 +10,7 @@
     />
     <title>せどり粗利計算</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=3" />
   </head>
   <body>
     <main class="app-shell">
@@ -95,14 +95,14 @@
 
         <section class="result-panel" aria-live="polite">
           <div class="hero-result" id="profitCard">
-            <span class="result-label">粗利（手数料後）</span>
+            <span class="result-label">粗利（手数料10%後）</span>
             <strong id="profitValue">¥0</strong>
             <span class="result-sub" id="profitMessage">仕入れ値、売値、送料を入力</span>
           </div>
 
           <div class="metric-grid">
             <article class="metric">
-              <span>メルカリ手数料</span>
+              <span>メルカリ手数料 10%</span>
               <strong id="feeAmount">¥0</strong>
             </article>
             <article class="metric">
@@ -126,6 +126,6 @@
       </form>
     </main>
 
-    <script src="./app.js" defer></script>
+    <script src="./app.js?v=3" defer></script>
   </body>
 </html>
