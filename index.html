@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0f766e" />
     <meta
       name="description"
-      content="せどり仕入れ時に使える粗利、粗利率、損益分岐点の計算アプリ"
+      content="せどり仕入れ時に使える粗利、粗利率、手数料、損益分岐点の計算アプリ"
     />
     <title>せどり粗利計算</title>
     <link rel="manifest" href="./manifest.webmanifest" />
@@ -95,12 +95,16 @@
 
         <section class="result-panel" aria-live="polite">
           <div class="hero-result" id="profitCard">
-            <span class="result-label">粗利</span>
+            <span class="result-label">粗利（手数料後）</span>
             <strong id="profitValue">¥0</strong>
             <span class="result-sub" id="profitMessage">仕入れ値、売値、送料を入力</span>
           </div>
 
           <div class="metric-grid">
+            <article class="metric">
+              <span>メルカリ手数料</span>
+              <strong id="feeAmount">¥0</strong>
+            </article>
             <article class="metric">
               <span>粗利率</span>
               <strong id="marginRate">0.0%</strong>

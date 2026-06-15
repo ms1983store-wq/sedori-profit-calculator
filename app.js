@@ -9,6 +9,8 @@ const percentFormatter = new Intl.NumberFormat("ja-JP", {
   maximumFractionDigits: 1,
 });
 
+const mercariFeeRate = 0.1;
+
 const fields = {
   cost: document.querySelector("#costInput"),
   price: document.querySelector("#priceInput"),
@@ -20,6 +22,7 @@ const output = {
   profitCard: document.querySelector("#profitCard"),
   profit: document.querySelector("#profitValue"),
   profitMessage: document.querySelector("#profitMessage"),
+  fee: document.querySelector("#feeAmount"),
   margin: document.querySelector("#marginRate"),
   breakEven: document.querySelector("#breakEvenPrice"),
   breakEvenGap: document.querySelector("#breakEvenGap"),
@@ -44,6 +47,24 @@ function formatYen(value) {
   return yenFormatter.format(Math.round(value));
 }
 
+function calculateMercariFee(price) {
+  return Math.ceil(price * mercariFeeRate);
+}
+
+function calculateBreakEvenPrice(totalCost) {
+  if (totalCost <= 0) return 0;
+
+  let price = Math.ceil(totalCost / (1 - mercariFeeRate));
+  while (price - calculateMercariFee(price) < totalCost) {
+    price += 1;
+  }
+  while (price > 0 && price - 1 - calculateMercariFee(price - 1) >= totalCost) {
+    price -= 1;
+  }
+
+  return price;
+}
+
 function readValues() {
   return {
     cost: parseMoney(fields.cost.value),
@@ -60,14 +81,17 @@ function setStatus(kind, label) {
 
 function calculate() {
   const { cost, price, shipping } = readValues();
-  const breakEven = cost + shipping;
-  const profit = price - breakEven;
+  const totalCost = cost + shipping;
+  const fee = calculateMercariFee(price);
+  const profit = price - fee - totalCost;
+  const breakEven = calculateBreakEvenPrice(totalCost);
   const margin = price > 0 ? (profit / price) * 100 : 0;
-  const maxCost = Math.max(price - shipping, 0);
+  const maxCost = Math.max(price - fee - shipping, 0);
   const breakEvenGap = price - breakEven;
   const hasAnyInput = cost > 0 || price > 0 || shipping > 0;
 
   output.profit.textContent = formatYen(profit);
+  output.fee.textContent = formatYen(fee);
   output.margin.textContent = `${percentFormatter.format(margin)}%`;
   output.breakEven.textContent = formatYen(breakEven);
   output.breakEvenGap.textContent = formatYen(breakEvenGap);
@@ -78,7 +102,7 @@ function calculate() {
     output.profitMessage.textContent = "仕入れ値、売値、送料を入力";
   } else if (profit > 0) {
     setStatus("", "利益あり");
-    output.profitMessage.textContent = `損益分岐より ${formatYen(profit)} 上`;
+    output.profitMessage.textContent = `手数料後で ${formatYen(profit)} 利益`;
   } else if (profit === 0) {
     setStatus("flat", "分岐点");
     output.profitMessage.textContent = "利益も損失も出ない売値";
@@ -126,15 +150,17 @@ clearButton.addEventListener("click", () => {
 
 shareButton.addEventListener("click", async () => {
   const { cost, price, shipping } = readValues();
-  const breakEven = cost + shipping;
-  const profit = price - breakEven;
+  const fee = calculateMercariFee(price);
+  const breakEven = calculateBreakEvenPrice(cost + shipping);
+  const profit = price - fee - cost - shipping;
   const margin = price > 0 ? (profit / price) * 100 : 0;
   const text = [
     "せどり粗利計算",
     `仕入れ値: ${formatYen(cost)}`,
     `売値: ${formatYen(price)}`,
     `送料: ${formatYen(shipping)}`,
-    `粗利: ${formatYen(profit)}`,
+    `メルカリ手数料(10%): ${formatYen(fee)}`,
+    `粗利(手数料後): ${formatYen(profit)}`,
     `粗利率: ${percentFormatter.format(margin)}%`,
     `損益分岐売値: ${formatYen(breakEven)}`,
   ].join("\n");
