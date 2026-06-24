@@ -1,4 +1,4 @@
-name: Deploy Sedori Profit Calculator
+name: Deploy Sedori Inventory Ledger
 
 on:
   push:

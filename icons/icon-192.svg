@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="せどり粗利計算">
-  <rect width="192" height="192" rx="42" fill="#0f766e"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="せどり在庫帳">
+  <rect width="192" height="192" rx="42" fill="#116466"/>
   <path d="M42 60h108v76H42z" fill="#ffffff" opacity=".96"/>
-  <path d="M58 78h76M58 98h76M58 118h42" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round"/>
-  <circle cx="137" cy="125" r="26" fill="#c28a20"/>
+  <path d="M58 78h76M58 98h76M58 118h42" fill="none" stroke="#116466" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="137" cy="125" r="26" fill="#b88718"/>
   <path d="M125 125h24M137 113v24" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
 </svg>
