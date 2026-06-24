@@ -1,11 +1,11 @@
 {
-  "name": "せどり在庫帳",
-  "short_name": "在庫帳",
-  "description": "せどり商品の仕入れ、販売日、販売価格、損益分岐点、利益をまとめて管理します。",
+  "name": "仕入れノート｜せどり商品管理",
+  "short_name": "仕入れノート",
+  "description": "仕入れ日ごとに店舗数・仕入れ額・想定粗利を確認できる、せどり仕入れ管理ツールです。",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f6f3ee",
-  "theme_color": "#116466",
+  "background_color": "#f3f0e9",
+  "theme_color": "#1f2a24",
   "icons": [
     {
       "src": "./icons/icon-192.svg",

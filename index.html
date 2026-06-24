@@ -3,223 +3,229 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#116466" />
+    <meta name="theme-color" content="#1f2a24" />
     <meta
       name="description"
-      content="せどりの仕入れ、販売日、販売価格、損益分岐点、利益をまとめて管理できる在庫管理アプリ"
+      content="仕入れ日ごとに店舗数・仕入れ額・想定粗利をすばやく把握できる、せどり仕入れ管理ツール"
     />
-    <title>せどり在庫帳</title>
+    <title>仕入れノート｜せどり商品管理</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=4" />
+    <link rel="stylesheet" href="./styles.css?v=6" />
   </head>
   <body>
     <main class="app-shell">
       <header class="app-header">
-        <div>
-          <p class="eyebrow">SEDORI LEDGER</p>
-          <h1>せどり在庫帳</h1>
-        </div>
+        <a class="brand" href="./" aria-label="仕入れノート ホーム">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M6 3h12a2 2 0 0 1 2 2v16l-8-4-8 4V5a2 2 0 0 1 2-2Z" />
+              <path d="M8 8h8M8 12h5" />
+            </svg>
+          </span>
+          <span>
+            <small>SEDORI BUYING LOG</small>
+            <strong>仕入れノート</strong>
+          </span>
+        </a>
+
         <div class="header-actions" aria-label="データ操作">
-          <button class="icon-button" type="button" id="exportButton" aria-label="CSVを書き出す" title="CSVを書き出す">
+          <button class="text-button" type="button" id="pasteImportButton" title="CSVの内容を貼り付けて読み込む">
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <path d="M7 10l5 5 5-5" />
-              <path d="M12 15V3" />
+              <path d="M15 4h3a2 2 0 0 1 2 2v14H4V6a2 2 0 0 1 2-2h3" />
+              <path d="M9 2h6v4H9zM12 11v6m-3-3 3 3 3-3" />
             </svg>
+            <span>貼付</span>
           </button>
-          <label class="icon-button file-action" aria-label="CSVを読み込む" title="CSVを読み込む">
+          <button class="text-button" type="button" id="exportButton" title="すべての記録をCSVで保存">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14" /></svg>
+            <span>CSV保存</span>
+          </button>
+          <label class="text-button file-action" title="CSVから記録を読み込む">
             <input id="importInput" type="file" accept=".csv,text/csv" />
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <path d="M17 8l-5-5-5 5" />
-              <path d="M12 3v12" />
-            </svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0 5 5m-5-5L7 9M5 20h14" /></svg>
+            <span>読込</span>
           </label>
         </div>
       </header>
 
-      <section class="summary-grid" aria-label="集計">
-        <article class="summary-tile">
-          <span>在庫数</span>
-          <strong id="stockCount">0</strong>
+      <section class="day-toolbar" aria-label="集計する仕入れ日">
+        <button class="square-button" type="button" id="previousDayButton" aria-label="前日">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <label class="date-picker">
+          <span>仕入れ日</span>
+          <input id="selectedDateInput" type="date" />
+        </label>
+        <button class="square-button" type="button" id="nextDayButton" aria-label="翌日">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+        </button>
+        <button class="today-button" type="button" id="todayButton">今日</button>
+        <p class="day-label" id="selectedDateLabel"></p>
+      </section>
+
+      <section class="summary-grid" aria-label="この日の仕入れ集計">
+        <article class="summary-card featured">
+          <span>想定粗利</span>
+          <strong id="totalProfit">¥0</strong>
+          <small id="profitPerStore">1店舗あたり ¥0</small>
         </article>
-        <article class="summary-tile">
-          <span>在庫原価</span>
-          <strong id="stockCost">¥0</strong>
+        <article class="summary-card">
+          <span>仕入れ店舗</span>
+          <strong><b id="storeCount">0</b><em>店</em></strong>
+          <small id="storeNames">まだ記録がありません</small>
         </article>
-        <article class="summary-tile">
-          <span>今月売上</span>
-          <strong id="monthlySales">¥0</strong>
+        <article class="summary-card">
+          <span>仕入れ点数</span>
+          <strong><b id="unitCount">0</b><em>点</em></strong>
+          <small id="productCount">0商品</small>
         </article>
-        <article class="summary-tile">
-          <span>今月利益</span>
-          <strong id="monthlyProfit">¥0</strong>
+        <article class="summary-card">
+          <span>仕入れ総額</span>
+          <strong id="totalCost">¥0</strong>
+          <small id="estimatedSales">想定売上 ¥0</small>
+        </article>
+        <article class="summary-card">
+          <span>見込みROI</span>
+          <strong id="totalRoi">0.0%</strong>
+          <small>想定粗利 ÷ 仕入れ額</small>
         </article>
       </section>
 
-      <section class="workspace">
+      <section class="main-grid">
         <form class="entry-panel" id="itemForm" autocomplete="off">
           <div class="panel-heading">
             <div>
-              <p class="section-kicker">ITEM</p>
-              <h2 id="formTitle">商品登録</h2>
+              <p class="section-kicker">QUICK ENTRY</p>
+              <h1 id="formTitle">商品を記録</h1>
             </div>
-            <button class="icon-button subtle" type="button" id="resetButton" aria-label="フォームを初期化" title="フォームを初期化">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 12a9 9 0 1 0 3-6.7" />
-                <path d="M3 4v5h5" />
-              </svg>
-            </button>
+            <button class="quiet-button" type="button" id="resetButton">入力をクリア</button>
           </div>
 
-          <input type="hidden" id="itemId" />
+          <input id="itemId" type="hidden" />
 
-          <label class="field full">
-            <span>商品名</span>
-            <input id="nameInput" type="text" placeholder="例：Nintendo Switch 本体" required />
-          </label>
-
-          <div class="field-row">
-            <label class="field">
-              <span>販売先</span>
-              <select id="marketInput">
-                <option value="メルカリ">メルカリ</option>
-                <option value="ラクマ">ラクマ</option>
-                <option value="Yahoo!フリマ">Yahoo!フリマ</option>
-                <option value="ヤフオク">ヤフオク</option>
-                <option value="Amazon">Amazon</option>
-                <option value="その他">その他</option>
-              </select>
+          <div class="form-grid">
+            <label class="field date-field">
+              <span>仕入れ日</span>
+              <input id="purchaseDateInput" type="date" required />
             </label>
-            <label class="field">
-              <span>状態</span>
-              <select id="statusInput">
-                <option value="出品前">出品前</option>
-                <option value="出品中">出品中</option>
-                <option value="発送準備">発送準備</option>
-                <option value="評価待ち">評価待ち</option>
-                <option value="完了">完了</option>
-              </select>
+            <label class="field store-field">
+              <span>店舗名 <i>必須</i></span>
+              <input id="storeInput" type="text" list="storeSuggestions" placeholder="例：ハードオフ 新宿店" required />
+              <datalist id="storeSuggestions"></datalist>
             </label>
-          </div>
-
-          <div class="field-row">
-            <label class="field">
-              <span>仕入日</span>
-              <input id="purchaseDateInput" type="date" />
+            <label class="field product-field">
+              <span>商品名 <i>必須</i></span>
+              <input id="nameInput" type="text" placeholder="例：Nintendo Switch 有機EL" required />
             </label>
-            <label class="field highlight-field">
-              <span>販売日</span>
-              <input id="saleDateInput" type="date" />
+            <label class="field code-field">
+              <span>JAN / ASIN <i>任意</i></span>
+              <input id="codeInput" type="text" inputmode="numeric" placeholder="バーコード番号など" />
             </label>
-          </div>
-
-          <div class="money-grid">
-            <label class="field">
-              <span>仕入れ値</span>
-              <span class="money-input">
-                <span>¥</span>
-                <input id="purchasePriceInput" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="0" required />
-              </span>
+            <label class="field quantity-field">
+              <span>数量</span>
+              <div class="stepper">
+                <button type="button" id="decreaseQuantity" aria-label="数量を1減らす">−</button>
+                <input id="quantityInput" type="number" min="1" max="999" step="1" value="1" required />
+                <button type="button" id="increaseQuantity" aria-label="数量を1増やす">＋</button>
+              </div>
             </label>
-            <label class="field">
-              <span>販売価格</span>
-              <span class="money-input">
-                <span>¥</span>
-                <input id="salePriceInput" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="0" />
-              </span>
+            <label class="field money-field">
+              <span>仕入れ単価</span>
+              <span class="money-input"><b>¥</b><input id="purchasePriceInput" type="text" inputmode="numeric" placeholder="0" required /></span>
             </label>
-            <label class="field">
-              <span>送料</span>
-              <span class="money-input">
-                <span>¥</span>
-                <input id="shippingInput" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="0" />
-              </span>
+            <label class="field money-field">
+              <span>想定売価 <i>1点あたり</i></span>
+              <span class="money-input"><b>¥</b><input id="salePriceInput" type="text" inputmode="numeric" placeholder="0" required /></span>
             </label>
-            <label class="field">
-              <span>梱包費</span>
-              <span class="money-input">
-                <span>¥</span>
-                <input id="packingInput" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="0" />
-              </span>
+            <label class="field money-field">
+              <span>送料・梱包費 <i>1点あたり</i></span>
+              <span class="money-input"><b>¥</b><input id="shippingInput" type="text" inputmode="numeric" placeholder="0" /></span>
+            </label>
+            <label class="field rate-field">
+              <span>販売手数料率</span>
+              <span class="rate-input"><input id="feeRateInput" type="number" min="0" max="80" step="0.1" value="10" /><b>%</b></span>
+            </label>
+            <label class="field memo-field">
+              <span>メモ <i>任意</i></span>
+              <input id="memoInput" type="text" placeholder="状態、棚、販売先など" />
             </label>
           </div>
 
-          <div class="field-row compact">
-            <label class="field">
-              <span>手数料率</span>
-              <span class="rate-input">
-                <input id="feeRateInput" type="number" min="0" max="80" step="0.1" value="10" />
-                <span>%</span>
-              </span>
-            </label>
-            <label class="field">
-              <span>メモ</span>
-              <input id="memoInput" type="text" placeholder="棚番・仕入れ先など" />
-            </label>
-          </div>
-
-          <section class="calculation-strip" aria-live="polite">
-            <article>
-              <span>損益分岐点</span>
-              <strong id="formBreakEven">¥0</strong>
-            </article>
-            <article>
-              <span>利益</span>
-              <strong id="formProfit">¥0</strong>
-            </article>
-            <article>
-              <span>利益率</span>
-              <strong id="formMargin">0.0%</strong>
-            </article>
+          <section class="calculation-preview" aria-live="polite">
+            <article><span>仕入れ額</span><strong id="formCost">¥0</strong></article>
+            <article><span>想定売上</span><strong id="formSales">¥0</strong></article>
+            <article class="profit-preview"><span>想定粗利</span><strong id="formProfit">¥0</strong></article>
+            <article><span>ROI</span><strong id="formRoi">0.0%</strong></article>
           </section>
 
-          <button class="primary-button" type="submit" id="saveButton">保存</button>
+          <p class="formula-note">想定粗利 ＝（想定売価 − 仕入れ単価 − 販売手数料 − 送料・梱包費）× 数量</p>
+          <button class="primary-button" type="submit" id="saveButton">
+            <span id="saveButtonLabel">この商品を追加</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </button>
         </form>
 
-        <section class="inventory-panel" aria-labelledby="inventoryTitle">
-          <div class="panel-heading inventory-heading">
+        <section class="records-panel" aria-labelledby="recordsTitle">
+          <div class="panel-heading records-heading">
             <div>
-              <p class="section-kicker">INVENTORY</p>
-              <h2 id="inventoryTitle">在庫一覧</h2>
+              <p class="section-kicker">DAILY RECORDS</p>
+              <h2 id="recordsTitle">この日の仕入れ</h2>
             </div>
             <label class="search-field">
-              <span class="sr-only">検索</span>
-              <input id="searchInput" type="search" placeholder="商品名・メモ検索" />
+              <span class="sr-only">商品や店舗を検索</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+              <input id="searchInput" type="search" placeholder="商品・店舗を検索" />
             </label>
           </div>
 
-          <div class="filter-row" id="statusFilters" aria-label="状態フィルター">
-            <button type="button" class="filter-chip active" data-status="all">すべて</button>
-            <button type="button" class="filter-chip" data-status="出品前">出品前</button>
-            <button type="button" class="filter-chip" data-status="出品中">出品中</button>
-            <button type="button" class="filter-chip" data-status="発送準備">発送準備</button>
-            <button type="button" class="filter-chip" data-status="評価待ち">評価待ち</button>
-            <button type="button" class="filter-chip" data-status="完了">完了</button>
-          </div>
+          <div class="store-strip" id="storeStrip" aria-label="店舗別集計"></div>
 
-          <div class="table-wrap">
+          <div class="table-wrap" id="tableWrap">
             <table>
               <thead>
                 <tr>
                   <th>商品</th>
-                  <th>状態</th>
-                  <th>販売日</th>
-                  <th>販売価格</th>
-                  <th>損益分岐点</th>
-                  <th>利益</th>
-                  <th>操作</th>
+                  <th>店舗</th>
+                  <th class="number-column">数量</th>
+                  <th class="number-column">仕入額</th>
+                  <th class="number-column">想定売上</th>
+                  <th class="number-column">想定粗利</th>
+                  <th class="action-column"><span class="sr-only">操作</span></th>
                 </tr>
               </thead>
-              <tbody id="inventoryBody"></tbody>
+              <tbody id="recordsBody"></tbody>
             </table>
           </div>
 
-          <p class="empty-state" id="emptyState">在庫を登録すると一覧に表示されます。</p>
+          <div class="empty-state" id="emptyState">
+            <span aria-hidden="true">＋</span>
+            <h3>この日の仕入れはまだありません</h3>
+            <p>左のフォームから商品を追加すると、店舗数と想定粗利がここにまとまります。</p>
+          </div>
         </section>
       </section>
     </main>
 
-    <script src="./app.js?v=4" defer></script>
+    <dialog class="csv-dialog" id="csvPasteDialog">
+      <form method="dialog" class="csv-dialog-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">CSV IMPORT</p>
+            <h2>CSV貼り付け</h2>
+          </div>
+          <button class="icon-button" type="button" id="closePasteDialogButton" aria-label="閉じる" title="閉じる">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <label class="field">
+          <span>CSVデータ</span>
+          <textarea id="csvPasteInput" placeholder="CSVの内容を貼り付け"></textarea>
+        </label>
+        <button class="primary-button" type="button" id="confirmPasteImportButton">読み込む</button>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js?v=6" defer></script>
   </body>
 </html>
