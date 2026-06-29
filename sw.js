@@ -1,7 +1,9 @@
-const cacheName = "sedori-profit-calculator-v8";
+const cacheName = "sedori-profit-calculator-v10";
 const assets = [
   "./",
   "./index.html",
+  "./calendar/",
+  "./calendar/index.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
@@ -20,17 +22,6 @@ self.addEventListener("activate", (event) => {
       const keys = await caches.keys();
       await Promise.all(keys.filter((key) => key !== cacheName).map((key) => caches.delete(key)));
       await self.clients.claim();
-
-      const clients = await self.clients.matchAll({
-        includeUncontrolled: true,
-        type: "window",
-      });
-      clients.forEach((client) => {
-        const url = new URL(client.url);
-        if (url.origin === self.location.origin) {
-          client.navigate(client.url);
-        }
-      });
     })(),
   );
 });
@@ -38,13 +29,16 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).catch(() => caches.match("./index.html")));
-    return;
-  }
-
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (event.request.mode === "navigate") {
+    const scopePath = new URL(self.registration.scope).pathname;
+    const relativePath = url.pathname.slice(scopePath.length).replace(/^\/+/, "");
+    const fallback = relativePath.startsWith("calendar") ? "./calendar/index.html" : "./index.html";
+    event.respondWith(fetch(event.request).catch(() => caches.match(fallback)));
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)

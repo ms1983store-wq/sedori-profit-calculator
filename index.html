@@ -3,129 +3,105 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f766e" />
+    <meta name="theme-color" content="#4f39f6" />
     <meta
       name="description"
-      content="せどり仕入れ時に使える粗利、粗利率、手数料、損益分岐点の計算アプリ"
+      content="せどり用のかんたん粗利計算ツール。売値・仕入値・送料を入れると、概算粗利と損益分岐点が出ます。"
     />
-    <title>せどり粗利計算</title>
+    <title>概算 粗利計算</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=8" />
+    <link rel="stylesheet" href="./styles.css?v=10" />
   </head>
-  <body>
-    <main class="app-shell">
-      <section class="header-panel" aria-labelledby="app-title">
-        <div>
-          <p class="eyebrow">BUYING CHECK</p>
-          <h1 id="app-title">せどり粗利計算</h1>
+  <body data-page="calculator">
+    <main class="page-shell">
+      <div class="container container-narrow">
+        <header class="topbar">
+          <div>
+            <h1>🧮 概算 粗利計算</h1>
+            <p class="lead">売値・仕入値・送料を入れると、だいたいの粗利が出るよ</p>
+          </div>
+          <a class="nav-pill" href="./calendar/">🗓 カレンダー</a>
+        </header>
+
+        <div class="edit-banner" id="editBanner" hidden>
+          <span>✏️ 編集中だよ。直して「更新する」を押してね</span>
+          <button type="button" id="cancelEditButton">やめる</button>
         </div>
-        <div class="status-pill" id="statusPill">入力待ち</div>
-      </section>
 
-      <form class="calculator" id="calculator" autocomplete="off">
-        <section class="input-panel" aria-label="計算入力">
-          <label class="money-field">
-            <span>仕入れ値</span>
-            <span class="input-wrap">
-              <span class="currency">¥</span>
-              <input
-                id="costInput"
-                name="cost"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9,]*"
-                placeholder="0"
-                aria-describedby="costHint"
-              />
-            </span>
-          </label>
-          <p class="field-note" id="costHint">商品を買う金額</p>
-
-          <label class="money-field">
-            <span>売値</span>
-            <span class="input-wrap">
-              <span class="currency">¥</span>
-              <input
-                id="priceInput"
-                name="price"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9,]*"
-                placeholder="0"
-              />
-            </span>
+        <section class="panel input-panel" aria-label="計算フォーム">
+          <label class="field">
+            <span>日付（過去の日もOK）</span>
+            <input id="dateInput" type="date" />
           </label>
 
-          <label class="money-field">
-            <span>送料</span>
-            <span class="input-wrap">
-              <span class="currency">¥</span>
-              <input
-                id="shippingInput"
-                name="shipping"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9,]*"
-                placeholder="0"
-              />
-            </span>
+          <label class="field">
+            <span>品名</span>
+            <input id="itemNameInput" type="text" placeholder="例：プレステ5 本体" />
           </label>
 
-          <div class="actions">
-            <button class="icon-button" type="button" id="clearButton" aria-label="入力を消す" title="入力を消す">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 6h18" />
-                <path d="M8 6V4h8v2" />
-                <path d="m19 6-1 14H6L5 6" />
-                <path d="M10 11v5" />
-                <path d="M14 11v5" />
-              </svg>
-            </button>
-            <button class="icon-button" type="button" id="shareButton" aria-label="結果を共有" title="結果を共有">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="18" cy="5" r="3" />
-                <circle cx="6" cy="12" r="3" />
-                <circle cx="18" cy="19" r="3" />
-                <path d="m8.6 13.5 6.8 4" />
-                <path d="m15.4 6.5-6.8 4" />
-              </svg>
-            </button>
+          <label class="field">
+            <span>予定の売値（円）</span>
+            <input id="salePriceInput" type="number" inputmode="numeric" placeholder="例：50000" />
+          </label>
+
+          <div class="field-grid">
+            <label class="field">
+              <span>仕入値（円）</span>
+              <input id="purchasePriceInput" type="number" inputmode="numeric" placeholder="例：30000" />
+            </label>
+            <label class="field">
+              <span>送料（円）</span>
+              <input id="shippingInput" type="number" inputmode="numeric" placeholder="例：1000" />
+            </label>
           </div>
         </section>
 
-        <section class="result-panel" aria-live="polite">
-          <div class="hero-result" id="profitCard">
-            <span class="result-label">粗利（手数料10%後）</span>
-            <strong id="profitValue">¥0</strong>
-            <span class="result-sub" id="profitMessage">仕入れ値、売値、送料を入力</span>
+        <section class="panel result-panel" aria-live="polite">
+          <div class="result-line">
+            <span>
+              概算の粗利
+              <small>（手数料10%）</small>
+            </span>
+            <strong id="profitValue" class="muted-value">売値を入れてね</strong>
           </div>
-
-          <div class="metric-grid">
-            <article class="metric">
-              <span>メルカリ手数料 10%</span>
-              <strong id="feeAmount">¥0</strong>
-            </article>
-            <article class="metric">
-              <span>粗利率</span>
-              <strong id="marginRate">0.0%</strong>
-            </article>
-            <article class="metric">
-              <span>損益分岐売値</span>
-              <strong id="breakEvenPrice">¥0</strong>
-            </article>
-            <article class="metric">
-              <span>売値との差</span>
-              <strong id="breakEvenGap">¥0</strong>
-            </article>
-            <article class="metric">
-              <span>仕入れ上限</span>
-              <strong id="maxCost">¥0</strong>
-            </article>
+          <div class="break-even-box">
+            <div class="result-line compact">
+              <span>
+                損益分岐点
+                <small>（赤字にならない売値）</small>
+              </span>
+              <strong id="breakEvenValue" class="muted-value">仕入値を入れてね</strong>
+            </div>
+            <p id="breakEvenNote">仕入値と送料から、10%手数料込みで自動計算します。</p>
           </div>
         </section>
-      </form>
+
+        <button id="saveButton" class="primary-button" type="button" disabled>この内容を保存する</button>
+        <button id="clearButton" class="secondary-button" type="button" hidden>入力をクリア</button>
+
+        <section class="today-section" aria-labelledby="todayTitle">
+          <h2 id="todayTitle">今日 保存した分（<span id="todayCount">0</span>件）</h2>
+          <p class="empty-text" id="todayEmpty">まだないよ。計算して「保存する」を押すと、ここに残るよ。</p>
+          <div class="summary-card" id="todaySummary" hidden>
+            <div>
+              <span>仕入値の合計</span>
+              <strong id="todayPurchaseTotal">¥0</strong>
+            </div>
+            <div>
+              <span>概算粗利の合計</span>
+              <strong id="todayProfitTotal">¥0</strong>
+            </div>
+          </div>
+          <ul class="record-list" id="todayList"></ul>
+        </section>
+
+        <p class="privacy-note">
+          入力した内容は、あなたのこの端末（ブラウザ）の中だけに保存されます。<br />
+          他の人には共有されません。
+        </p>
+      </div>
     </main>
 
-    <script src="./app.js?v=8" defer></script>
+    <script src="./app.js?v=10" defer></script>
   </body>
 </html>

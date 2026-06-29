@@ -25,6 +25,9 @@ while ($listener.IsListening) {
   }
 
   $fullPath = [System.IO.Path]::GetFullPath((Join-Path $root $path))
+  if ([System.IO.Directory]::Exists($fullPath)) {
+    $fullPath = [System.IO.Path]::GetFullPath((Join-Path $fullPath "index.html"))
+  }
   if (-not $fullPath.StartsWith($root, [System.StringComparison]::OrdinalIgnoreCase)) {
     $context.Response.StatusCode = 403
     $context.Response.Close()
