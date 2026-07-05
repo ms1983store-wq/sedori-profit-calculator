@@ -1,7 +1,7 @@
 {
   "name": "概算 粗利計算",
   "short_name": "粗利計算",
-  "description": "売値・仕入値・送料から、概算粗利と損益分岐点を計算します。",
+  "description": "売値・仕入値・送料から概算粗利を計算し、保存データをカレンダーとバックアップで管理できます。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

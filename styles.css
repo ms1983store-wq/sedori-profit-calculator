@@ -80,7 +80,7 @@ h1 {
 }
 
 .lead {
-  margin: 4px 0 0;
+  margin: -8px 0 14px;
   color: var(--muted);
   font-size: 0.76rem;
 }
@@ -439,6 +439,67 @@ h1 {
   color: var(--faint);
   font-size: 0.68rem;
   text-align: center;
+}
+
+.backup-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  padding: 14px;
+}
+
+.backup-panel h2 {
+  margin: 0;
+  color: #314158;
+  font-size: 0.92rem;
+}
+
+.backup-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+.backup-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.backup-actions button,
+.backup-actions label,
+.csv-button {
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--sky);
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.backup-actions label {
+  position: relative;
+  overflow: hidden;
+}
+
+.backup-actions input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.csv-button {
+  width: 100%;
+  color: var(--indigo);
 }
 
 .calendar-shell {
@@ -818,6 +879,17 @@ button.calendar-day {
     border-color: #953d00;
     background: rgba(70, 25, 1, 0.45);
     color: #ffd236;
+  }
+
+  .backup-panel h2 {
+    color: #e2e8f0;
+  }
+
+  .backup-actions button,
+  .backup-actions label,
+  .csv-button {
+    border-color: #314158;
+    background: rgba(29, 41, 61, 0.88);
   }
 
   .break-even-box,

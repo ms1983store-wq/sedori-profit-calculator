@@ -1,4 +1,5 @@
 const STORAGE_KEY = "rieki-calc/records/v1";
+const BACKUP_VERSION = 1;
 const FEE_RATE = 0.1;
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -79,6 +80,18 @@ function saveRecords(records) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 }
 
+function normalizeRecord(record) {
+  return {
+    id: record.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    date: record.date || todayJst(),
+    itemName: String(record.itemName ?? "").trim(),
+    salePrice: parseAmount(record.salePrice),
+    purchasePrice: parseAmount(record.purchasePrice),
+    shipping: parseAmount(record.shipping),
+    storeName: String(record.storeName ?? "").trim(),
+  };
+}
+
 function addRecord(record) {
   const records = loadRecords();
   const next = [
@@ -90,6 +103,80 @@ function addRecord(record) {
   ];
   saveRecords(next);
   return next;
+}
+
+function downloadText(filename, text, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function csvCell(value) {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
+function exportBackup(records) {
+  const payload = {
+    app: "rieki-calc",
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    records: records.map(normalizeRecord),
+  };
+  downloadText(`rieki-calc-backup-${todayJst()}.json`, JSON.stringify(payload, null, 2), "application/json");
+}
+
+function exportCsv(records) {
+  const header = [
+    "日付",
+    "品名",
+    "店舗名",
+    "売値",
+    "仕入値",
+    "送料",
+    "メルカリ手数料",
+    "概算粗利",
+    "粗利率",
+    "損益分岐点",
+  ];
+  const rows = records.map((record) => {
+    const normalized = normalizeRecord(record);
+    const profit = recordProfit(normalized);
+    const margin =
+      profit !== null && normalized.salePrice ? `${Math.round((profit / normalized.salePrice) * 100)}%` : "";
+    return [
+      normalized.date,
+      normalized.itemName,
+      normalized.storeName,
+      normalized.salePrice ?? "",
+      normalized.purchasePrice ?? "",
+      normalized.shipping ?? "",
+      normalized.salePrice ? calculateFee(normalized.salePrice) : "",
+      profit ?? "",
+      margin,
+      recordBreakEven(normalized) ?? "",
+    ]
+      .map(csvCell)
+      .join(",");
+  });
+  downloadText(
+    `rieki-calc-records-${todayJst()}.csv`,
+    `\ufeff${[header.map(csvCell).join(","), ...rows].join("\r\n")}`,
+    "text/csv;charset=utf-8",
+  );
+}
+
+function mergeImportedRecords(currentRecords, importedRecords) {
+  const merged = new Map(currentRecords.map((record) => [record.id, normalizeRecord(record)]));
+  importedRecords.map(normalizeRecord).forEach((record) => {
+    merged.set(record.id, record);
+  });
+  return [...merged.values()].sort((a, b) => String(b.date).localeCompare(String(a.date)));
 }
 
 function updateRecord(id, patch) {
@@ -152,6 +239,7 @@ function renderRecordItem(record, { onEdit, onDelete, tagName = "li" } = {}) {
     <div class="record-main">
       <div class="record-text">
         <div class="record-name">${escapeHtml(record.itemName || "（品名なし）")}</div>
+        ${record.storeName ? `<div class="record-detail">店舗 ${escapeHtml(record.storeName)}</div>` : ""}
         <div class="record-detail">
           売値 ${formatYen(record.salePrice ?? 0)} ／ 仕入 ${formatYen(record.purchasePrice ?? 0)} ／ 送料 ${formatYen(record.shipping ?? 0)}
         </div>
@@ -183,14 +271,13 @@ function initCalculator() {
     salePrice: document.querySelector("#salePriceInput"),
     purchasePrice: document.querySelector("#purchasePriceInput"),
     shipping: document.querySelector("#shippingInput"),
+    storeName: document.querySelector("#storeNameInput"),
   };
 
   const nodes = {
     editBanner: document.querySelector("#editBanner"),
     cancelEditButton: document.querySelector("#cancelEditButton"),
     profit: document.querySelector("#profitValue"),
-    breakEven: document.querySelector("#breakEvenValue"),
-    breakEvenNote: document.querySelector("#breakEvenNote"),
     saveButton: document.querySelector("#saveButton"),
     clearButton: document.querySelector("#clearButton"),
     todayCount: document.querySelector("#todayCount"),
@@ -199,6 +286,9 @@ function initCalculator() {
     todayPurchaseTotal: document.querySelector("#todayPurchaseTotal"),
     todayProfitTotal: document.querySelector("#todayProfitTotal"),
     todayList: document.querySelector("#todayList"),
+    exportBackupButton: document.querySelector("#exportBackupButton"),
+    importBackupInput: document.querySelector("#importBackupInput"),
+    exportCsvButton: document.querySelector("#exportCsvButton"),
   };
 
   fields.date.max = todayJst();
@@ -211,6 +301,7 @@ function initCalculator() {
       salePrice: parseAmount(fields.salePrice.value),
       purchasePrice: parseAmount(fields.purchasePrice.value),
       shipping: parseAmount(fields.shipping.value),
+      storeName: fields.storeName.value.trim(),
     };
   }
 
@@ -220,6 +311,7 @@ function initCalculator() {
     fields.salePrice.value = "";
     fields.purchasePrice.value = "";
     fields.shipping.value = "";
+    fields.storeName.value = "";
     editingId = null;
     nodes.editBanner.hidden = true;
     renderCalculator();
@@ -232,6 +324,7 @@ function initCalculator() {
     fields.salePrice.value = record.salePrice ?? "";
     fields.purchasePrice.value = record.purchasePrice ?? "";
     fields.shipping.value = record.shipping ?? "";
+    fields.storeName.value = record.storeName || "";
     nodes.editBanner.hidden = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
     renderCalculator();
@@ -240,10 +333,13 @@ function initCalculator() {
   function renderCalculator() {
     const values = readForm();
     const profit = estimateProfit(values);
-    const breakEven = calculateBreakEven(values.purchasePrice, values.shipping);
     const margin = profit !== null && values.salePrice ? Math.round((profit / values.salePrice) * 100) : null;
     const hasInput = Boolean(
-      fields.itemName.value || fields.salePrice.value || fields.purchasePrice.value || fields.shipping.value,
+      fields.itemName.value ||
+        fields.salePrice.value ||
+        fields.purchasePrice.value ||
+        fields.shipping.value ||
+        fields.storeName.value,
     );
 
     nodes.saveButton.disabled = profit === null;
@@ -256,24 +352,6 @@ function initCalculator() {
     } else {
       setSignedMoneyClass(nodes.profit, profit);
       nodes.profit.textContent = `${formatProfit(profit)}${margin === null ? "" : ` 粗利率 ${margin}%`}`;
-    }
-
-    if (breakEven === null) {
-      nodes.breakEven.className = "muted-value";
-      nodes.breakEven.textContent = "仕入値を入れてね";
-      nodes.breakEvenNote.textContent = "仕入値と送料から、10%手数料込みで自動計算します。";
-    } else {
-      nodes.breakEven.className = "break-even-value";
-      nodes.breakEven.textContent = formatYen(breakEven);
-      if (values.salePrice && values.salePrice > 0) {
-        const gap = values.salePrice - breakEven;
-        nodes.breakEvenNote.textContent =
-          gap >= 0
-            ? `予定売値は分岐点より ${formatYen(gap)} 上です。`
-            : `予定売値は分岐点まで ${formatYen(Math.abs(gap))} 足りません。`;
-      } else {
-        nodes.breakEvenNote.textContent = "この金額以上で売ると、手数料を引いた後に赤字を避けられます。";
-      }
     }
 
     renderToday();
@@ -310,6 +388,27 @@ function initCalculator() {
     });
   }
 
+  async function importBackupFile(file) {
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      const importedRecords = Array.isArray(payload) ? payload : payload.records;
+      if (!Array.isArray(importedRecords)) {
+        throw new Error("Invalid backup file");
+      }
+      records = mergeImportedRecords(records, importedRecords);
+      saveRecords(records);
+      renderCalculator();
+      window.alert(`${importedRecords.length}件のデータを読み込みました。`);
+    } catch {
+      window.alert("読み込みに失敗しました。書き出したバックアップファイルを選んでください。");
+    } finally {
+      nodes.importBackupInput.value = "";
+    }
+  }
+
   Object.values(fields).forEach((field) => {
     field.addEventListener("input", renderCalculator);
     field.addEventListener("change", renderCalculator);
@@ -329,6 +428,9 @@ function initCalculator() {
 
   nodes.clearButton.addEventListener("click", clearForm);
   nodes.cancelEditButton.addEventListener("click", clearForm);
+  nodes.exportBackupButton.addEventListener("click", () => exportBackup(records));
+  nodes.exportCsvButton.addEventListener("click", () => exportCsv(records));
+  nodes.importBackupInput.addEventListener("change", () => importBackupFile(nodes.importBackupInput.files?.[0]));
   renderCalculator();
 }
 
@@ -343,8 +445,11 @@ function initCalendar() {
   const nodes = {
     monthTitle: document.querySelector("#monthTitle"),
     calendarGrid: document.querySelector("#calendarGrid"),
+    monthCountLabel: document.querySelector("#monthCountLabel"),
     monthCount: document.querySelector("#monthCount"),
+    monthPurchaseLabel: document.querySelector("#monthPurchaseLabel"),
     monthPurchase: document.querySelector("#monthPurchase"),
+    monthProfitLabel: document.querySelector("#monthProfitLabel"),
     monthProfit: document.querySelector("#monthProfit"),
     dayList: document.querySelector("#dayList"),
     prevMonth: document.querySelector("#prevMonth"),
@@ -377,6 +482,9 @@ function initCalendar() {
     const monthSummary = summarizeRecords(monthRecords);
 
     nodes.monthTitle.textContent = `${year}年${month}月`;
+    nodes.monthCountLabel.textContent = `${month}月の保存件数`;
+    nodes.monthPurchaseLabel.textContent = `${month}月の仕入値合計`;
+    nodes.monthProfitLabel.textContent = `${month}月の概算粗利`;
     nodes.monthCount.textContent = `${monthSummary.count} 件`;
     nodes.monthPurchase.textContent = formatYen(monthSummary.purchase);
     nodes.monthProfit.textContent = monthSummary.profitCount ? formatProfit(monthSummary.profit) : "まだないよ";
@@ -521,6 +629,10 @@ function initCalendar() {
         <span>品名</span>
         <input class="edit-name" type="text" value="${escapeHtml(record.itemName || "")}" placeholder="品名" />
       </label>
+      <label class="field small-field">
+        <span>店舗名</span>
+        <input class="edit-store" type="text" value="${escapeHtml(record.storeName || "")}" placeholder="店舗名" />
+      </label>
       <div class="field-grid three">
         <label class="field small-field">
           <span>売値</span>
@@ -548,6 +660,7 @@ function initCalendar() {
         salePrice: parseAmount(item.querySelector(".edit-sale").value),
         purchasePrice: parseAmount(item.querySelector(".edit-purchase").value),
         shipping: parseAmount(item.querySelector(".edit-shipping").value),
+        storeName: item.querySelector(".edit-store").value.trim(),
       });
       editingId = null;
       renderCalendar();

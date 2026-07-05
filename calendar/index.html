@@ -8,9 +8,9 @@
       name="description"
       content="保存した粗利計算を月別カレンダーで確認できます。"
     />
-    <title>カレンダー - 概算 粗利計算</title>
+    <title>概算 粗利計算</title>
     <link rel="manifest" href="../manifest.webmanifest" />
-    <link rel="stylesheet" href="../styles.css?v=10" />
+    <link rel="stylesheet" href="../styles.css?v=11" />
   </head>
   <body data-page="calendar">
     <main class="calendar-shell">
@@ -48,15 +48,15 @@
 
         <section class="month-summary" aria-label="月の合計">
           <div>
-            <span>保存件数</span>
+            <span id="monthCountLabel">保存件数</span>
             <strong id="monthCount">0 件</strong>
           </div>
           <div>
-            <span>仕入値合計</span>
+            <span id="monthPurchaseLabel">仕入値合計</span>
             <strong id="monthPurchase">¥0</strong>
           </div>
           <div>
-            <span>概算粗利</span>
+            <span id="monthProfitLabel">概算粗利</span>
             <strong id="monthProfit" class="muted-value">まだないよ</strong>
           </div>
         </section>
@@ -68,6 +68,6 @@
       </div>
     </main>
 
-    <script src="../app.js?v=10" defer></script>
+    <script src="../app.js?v=11" defer></script>
   </body>
 </html>

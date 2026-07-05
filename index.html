@@ -6,22 +6,20 @@
     <meta name="theme-color" content="#4f39f6" />
     <meta
       name="description"
-      content="せどり用のかんたん粗利計算ツール。売値・仕入値・送料を入れると、概算粗利と損益分岐点が出ます。"
+      content="せどり用のかんたん粗利計算ツール。売値・仕入値・送料を入れると、概算粗利が出ます。保存データのバックアップにも対応しています。"
     />
     <title>概算 粗利計算</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=10" />
+    <link rel="stylesheet" href="./styles.css?v=11" />
   </head>
   <body data-page="calculator">
     <main class="page-shell">
       <div class="container container-narrow">
         <header class="topbar">
-          <div>
-            <h1>🧮 概算 粗利計算</h1>
-            <p class="lead">売値・仕入値・送料を入れると、だいたいの粗利が出るよ</p>
-          </div>
+          <h1>🧮 概算 粗利計算</h1>
           <a class="nav-pill" href="./calendar/">🗓 カレンダー</a>
         </header>
+        <p class="lead">売値・仕入値・送料を入れると、だいたいの粗利が出るよ</p>
 
         <div class="edit-banner" id="editBanner" hidden>
           <span>✏️ 編集中だよ。直して「更新する」を押してね</span>
@@ -54,6 +52,11 @@
               <input id="shippingInput" type="number" inputmode="numeric" placeholder="例：1000" />
             </label>
           </div>
+
+          <label class="field">
+            <span>店舗名（任意）</span>
+            <input id="storeNameInput" type="text" placeholder="例：ハードオフ 〇〇店" />
+          </label>
         </section>
 
         <section class="panel result-panel" aria-live="polite">
@@ -63,16 +66,6 @@
               <small>（手数料10%）</small>
             </span>
             <strong id="profitValue" class="muted-value">売値を入れてね</strong>
-          </div>
-          <div class="break-even-box">
-            <div class="result-line compact">
-              <span>
-                損益分岐点
-                <small>（赤字にならない売値）</small>
-              </span>
-              <strong id="breakEvenValue" class="muted-value">仕入値を入れてね</strong>
-            </div>
-            <p id="breakEvenNote">仕入値と送料から、10%手数料込みで自動計算します。</p>
           </div>
         </section>
 
@@ -95,6 +88,26 @@
           <ul class="record-list" id="todayList"></ul>
         </section>
 
+        <section class="backup-panel" aria-labelledby="backupTitle">
+          <h2 id="backupTitle">📦 スマホの引き継ぎ・バックアップ</h2>
+          <p>
+            今のスマホで「書き出す」→ ファイルを保存（FilesやAirDrop）。
+            新しいスマホでこのページを開いて「読み込む」→ そのファイルを選ぶと引き継げるよ。
+          </p>
+          <div class="backup-actions">
+            <button type="button" id="exportBackupButton">書き出す</button>
+            <label>
+              読み込む
+              <input id="importBackupInput" type="file" accept=".json,application/json" />
+            </label>
+          </div>
+          <p>
+            エクセルやGoogleスプレッドシートで表として見たい時は、こっち（CSV）。
+            ※こちらは見る専用で、読み込みには使えないよ。
+          </p>
+          <button class="csv-button" type="button" id="exportCsvButton">スプレッドシート用に書き出す（CSV）</button>
+        </section>
+
         <p class="privacy-note">
           入力した内容は、あなたのこの端末（ブラウザ）の中だけに保存されます。<br />
           他の人には共有されません。
@@ -102,6 +115,6 @@
       </div>
     </main>
 
-    <script src="./app.js?v=10" defer></script>
+    <script src="./app.js?v=11" defer></script>
   </body>
 </html>
