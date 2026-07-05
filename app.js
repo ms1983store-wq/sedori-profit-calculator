@@ -278,6 +278,8 @@ function initCalculator() {
     editBanner: document.querySelector("#editBanner"),
     cancelEditButton: document.querySelector("#cancelEditButton"),
     profit: document.querySelector("#profitValue"),
+    breakEven: document.querySelector("#breakEvenValue"),
+    breakEvenNote: document.querySelector("#breakEvenNote"),
     saveButton: document.querySelector("#saveButton"),
     clearButton: document.querySelector("#clearButton"),
     todayCount: document.querySelector("#todayCount"),
@@ -333,6 +335,7 @@ function initCalculator() {
   function renderCalculator() {
     const values = readForm();
     const profit = estimateProfit(values);
+    const breakEven = calculateBreakEven(values.purchasePrice, values.shipping);
     const margin = profit !== null && values.salePrice ? Math.round((profit / values.salePrice) * 100) : null;
     const hasInput = Boolean(
       fields.itemName.value ||
@@ -352,6 +355,24 @@ function initCalculator() {
     } else {
       setSignedMoneyClass(nodes.profit, profit);
       nodes.profit.textContent = `${formatProfit(profit)}${margin === null ? "" : ` 粗利率 ${margin}%`}`;
+    }
+
+    if (breakEven === null) {
+      nodes.breakEven.className = "muted-value";
+      nodes.breakEven.textContent = "仕入値を入れてね";
+      nodes.breakEvenNote.textContent = "仕入値と送料から、10%手数料込みで自動計算します。";
+    } else {
+      nodes.breakEven.className = "break-even-value";
+      nodes.breakEven.textContent = formatYen(breakEven);
+      if (values.salePrice && values.salePrice > 0) {
+        const gap = values.salePrice - breakEven;
+        nodes.breakEvenNote.textContent =
+          gap >= 0
+            ? `予定売値は分岐点より ${formatYen(gap)} 上です。`
+            : `予定売値は分岐点まで ${formatYen(Math.abs(gap))} 足りません。`;
+      } else {
+        nodes.breakEvenNote.textContent = "この金額以上で売ると、手数料を引いた後に赤字を避けられます。";
+      }
     }
 
     renderToday();

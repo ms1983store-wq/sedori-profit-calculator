@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#4f39f6" />
     <meta
       name="description"
-      content="せどり用のかんたん粗利計算ツール。売値・仕入値・送料を入れると、概算粗利が出ます。保存データのバックアップにも対応しています。"
+      content="せどり用のかんたん粗利計算ツール。売値・仕入値・送料を入れると、概算粗利と損益分岐点が出ます。保存データのバックアップにも対応しています。"
     />
     <title>概算 粗利計算</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=11" />
+    <link rel="stylesheet" href="./styles.css?v=12" />
   </head>
   <body data-page="calculator">
     <main class="page-shell">
@@ -67,6 +67,13 @@
             </span>
             <strong id="profitValue" class="muted-value">売値を入れてね</strong>
           </div>
+          <div class="break-even-box">
+            <div class="result-line compact">
+              <span>損益分岐点</span>
+              <strong id="breakEvenValue" class="muted-value">仕入値を入れてね</strong>
+            </div>
+            <p id="breakEvenNote">仕入値と送料から、10%手数料込みで自動計算します。</p>
+          </div>
         </section>
 
         <button id="saveButton" class="primary-button" type="button" disabled>この内容を保存する</button>
@@ -115,6 +122,6 @@
       </div>
     </main>
 
-    <script src="./app.js?v=11" defer></script>
+    <script src="./app.js?v=12" defer></script>
   </body>
 </html>
