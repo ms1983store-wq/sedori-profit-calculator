@@ -70,6 +70,13 @@ a {
   margin-bottom: 14px;
 }
 
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 h1 {
   margin: 0;
   color: #1d293d;
@@ -812,6 +819,10 @@ button.calendar-day {
 
   .nav-pill {
     align-self: flex-start;
+  }
+
+  .nav-links {
+    justify-content: flex-start;
   }
 
   .field-grid.three {

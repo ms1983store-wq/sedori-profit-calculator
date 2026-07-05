@@ -15,6 +15,13 @@
 
 ## 公開
 
-`index.html`、`calendar/index.html`、`styles.css`、`app.js`、`manifest.webmanifest`、`sw.js`、`icons/` を静的ホスティングに置くと公開できます。
+`index.html`、`calendar/index.html`、`inventory/`、`styles.css`、`app.js`、`manifest.webmanifest`、`sw.js`、`icons/` を静的ホスティングに置くと公開できます。
 
 このリポジトリは GitHub Pages 用の workflow を含んでいます。`main` ブランチへ push すると自動デプロイされます。
+
+## URL
+
+- 粗利計算アプリ: `/sedori-profit-calculator/`
+- 在庫管理アプリ: `/sedori-profit-calculator/inventory/`
+
+在庫管理アプリは `inventory/` フォルダに分けて配置しています。保存データとPWAキャッシュは粗利計算アプリと別のキーを使います。
