@@ -30,6 +30,7 @@ jobs:
           mkdir _site
           cp index.html styles.css app.js manifest.webmanifest sw.js _site/
           cp -R calendar _site/calendar
+          cp -R inventory _site/inventory
           cp -R icons _site/icons
           touch _site/.nojekyll
 
