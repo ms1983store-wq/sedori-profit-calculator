@@ -53,6 +53,7 @@ const output = {
   monthlyProfit: document.querySelector("#monthlyProfit"),
   summaryMonthInput: document.querySelector("#summaryMonthInput"),
   monthlySoldCount: document.querySelector("#monthlySoldCount"),
+  monthEndStockCount: document.querySelector("#monthEndStockCount"),
   monthlyCost: document.querySelector("#monthlyCost"),
   monthlyAverageProfit: document.querySelector("#monthlyAverageProfit"),
   monthlyRoi: document.querySelector("#monthlyRoi"),
@@ -152,6 +153,13 @@ function shiftMonth(monthString, amount) {
   const [year, month] = String(monthString || currentMonth()).split("-").map(Number);
   const date = new Date(year, (month || 1) - 1 + amount, 1);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getMonthEndDate(monthString) {
+  const [year, month] = String(monthString || currentMonth()).split("-").map(Number);
+  if (!year || !month) return "";
+  const day = new Date(year, month, 0).getDate();
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function getInitialView() {
@@ -374,6 +382,19 @@ function getLatestSaleMonth() {
     .at(-1);
 }
 
+function isStockAtMonthEnd(item, monthString) {
+  const monthEndDate = getMonthEndDate(monthString);
+  if (!monthEndDate) return false;
+
+  const purchaseDate = normalizeDate(item.purchaseDate);
+  if (purchaseDate && purchaseDate > monthEndDate) return false;
+  if (!purchaseDate && soldStatuses.has(item.status)) return false;
+
+  const saleDate = normalizeDate(item.saleDate);
+  if (!saleDate) return !soldStatuses.has(item.status);
+  return saleDate > monthEndDate;
+}
+
 function getFilteredItems() {
   const keyword = state.search.trim().toLowerCase();
   return state.items
@@ -403,6 +424,7 @@ function renderSummary() {
   const monthlySales = monthlyItems.reduce((sum, item) => sum + item.salePrice, 0);
   const monthlyProfit = monthlyItems.reduce((sum, item) => sum + getCalculations(item).profit, 0);
   const monthlyCost = monthlyItems.reduce((sum, item) => sum + getCalculations(item).totalCost, 0);
+  const monthEndItems = state.items.filter((item) => isStockAtMonthEnd(item, state.selectedMonth));
   const averageProfit = monthlyItems.length ? monthlyProfit / monthlyItems.length : 0;
   const roi = monthlyCost > 0 ? (monthlyProfit / monthlyCost) * 100 : 0;
 
@@ -412,6 +434,7 @@ function renderSummary() {
   output.monthlySales.textContent = formatYen(monthlySales);
   output.monthlyProfit.textContent = formatYen(monthlyProfit);
   output.monthlySoldCount.textContent = numberFormatter.format(monthlyItems.length);
+  output.monthEndStockCount.textContent = numberFormatter.format(monthEndItems.length);
   output.monthlyCost.textContent = formatYen(monthlyCost);
   output.monthlyAverageProfit.textContent = formatYen(averageProfit);
   output.monthlyRoi.textContent = `${percentFormatter.format(roi)}%`;

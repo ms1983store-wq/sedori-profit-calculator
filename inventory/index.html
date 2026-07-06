@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=13" />
+    <link rel="stylesheet" href="./styles.css?v=14" />
   </head>
   <body>
     <main class="app-shell">
@@ -72,11 +72,11 @@
 
         <section class="summary-grid" aria-label="集計">
           <article class="summary-tile">
-            <span>在庫数</span>
+            <span>現在在庫数</span>
             <strong id="stockCount">0</strong>
           </article>
           <article class="summary-tile">
-            <span>在庫原価</span>
+            <span>現在在庫原価</span>
             <strong id="stockCost">¥0</strong>
           </article>
           <article class="summary-tile">
@@ -91,8 +91,12 @@
 
         <section class="month-detail-grid" aria-label="月別詳細">
           <article>
-            <span>販売数</span>
+            <span>月販売数</span>
             <strong id="monthlySoldCount">0</strong>
+          </article>
+          <article>
+            <span>月末在庫数</span>
+            <strong id="monthEndStockCount">0</strong>
           </article>
           <article>
             <span>月原価</span>
@@ -309,6 +313,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=2" defer></script>
-    <script src="./app.js?v=13" defer></script>
+    <script src="./app.js?v=14" defer></script>
   </body>
 </html>
