@@ -29,12 +29,29 @@ html {
 }
 
 body {
+  position: relative;
+  isolation: isolate;
   min-height: 100%;
   margin: 0;
   color: var(--ink);
   background:
-    linear-gradient(180deg, rgba(17, 100, 102, 0.11), transparent 290px),
+    linear-gradient(180deg, rgba(17, 100, 102, 0.13), rgba(246, 243, 238, 0) 310px),
+    linear-gradient(135deg, rgba(219, 39, 119, 0.08), rgba(37, 99, 235, 0.06) 44%, rgba(250, 204, 21, 0.09)),
+    repeating-linear-gradient(90deg, rgba(17, 100, 102, 0.045) 0 1px, transparent 1px 74px),
+    repeating-linear-gradient(0deg, rgba(184, 136, 24, 0.052) 0 1px, transparent 1px 74px),
     var(--bg);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, #db2777 0 16.6%, #facc15 16.6% 33.2%, #2563eb 33.2% 49.8%, #9333ea 49.8% 66.4%, #ea580c 66.4% 83%, #059669 83% 100%) top / 100% 5px no-repeat,
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.48) 0 12px, rgba(255, 255, 255, 0) 12px 28px);
+  opacity: 0.62;
 }
 
 button,
