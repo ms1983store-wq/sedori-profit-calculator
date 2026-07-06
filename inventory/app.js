@@ -20,6 +20,7 @@ const state = {
   items: [],
   filterStatus: "all",
   search: "",
+  activeView: "top",
 };
 
 const form = document.querySelector("#itemForm");
@@ -62,6 +63,9 @@ const controls = {
   closePasteDialogButton: document.querySelector("#closePasteDialogButton"),
   searchInput: document.querySelector("#searchInput"),
   statusFilters: document.querySelector("#statusFilters"),
+  viewTabs: Array.from(document.querySelectorAll("[data-view-tab]")),
+  viewPanels: Array.from(document.querySelectorAll("[data-view-panel]")),
+  viewTargets: Array.from(document.querySelectorAll("[data-view-target]")),
   toast: document.querySelector("#toast"),
 };
 
@@ -130,6 +134,38 @@ function today() {
   return `${year}-${month}-${day}`;
 }
 
+function getInitialView() {
+  const view = window.location.hash.replace(/^#/, "");
+  return ["top", "entry", "inventory"].includes(view) ? view : "top";
+}
+
+function switchView(view, options = {}) {
+  const { updateHash = true, scroll = true } = options;
+  const nextView = ["top", "entry", "inventory"].includes(view) ? view : "top";
+  state.activeView = nextView;
+
+  controls.viewTabs.forEach((button) => {
+    const active = button.dataset.viewTab === nextView;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+
+  controls.viewPanels.forEach((panel) => {
+    const active = panel.dataset.viewPanel === nextView;
+    panel.hidden = !active;
+    panel.classList.toggle("active", active);
+  });
+
+  if (updateHash) {
+    const suffix = nextView === "top" ? "" : `#${nextView}`;
+    history.replaceState(null, "", `${window.location.pathname}${window.location.search}${suffix}`);
+  }
+
+  if (scroll) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
 function normalizeDate(value) {
   const match = String(value || "")
     .trim()
@@ -196,14 +232,15 @@ function updateFormPreview() {
   output.formProfit.classList.toggle("loss-text", calc.profit < 0);
 }
 
-function resetForm() {
+function resetForm(options = {}) {
+  const { focus = state.activeView === "entry" } = options;
   form.reset();
   fields.id.value = "";
   fields.purchaseDate.value = today();
   fields.feeRate.value = defaultFeeRate;
   output.formTitle.textContent = "商品登録";
   updateFormPreview();
-  fields.name.focus();
+  if (focus) fields.name.focus();
 }
 
 function fillForm(item) {
@@ -221,6 +258,7 @@ function fillForm(item) {
   fields.memo.value = item.memo || "";
   output.formTitle.textContent = "商品編集";
   updateFormPreview();
+  switchView("entry");
   fields.name.focus();
 }
 
@@ -728,6 +766,12 @@ controls.confirmPasteImportButton?.addEventListener("click", () => {
     showToast(error.message || "CSVを読み込めませんでした");
   }
 });
+controls.viewTabs.forEach((button) => {
+  button.addEventListener("click", () => switchView(button.dataset.viewTab));
+});
+controls.viewTargets.forEach((button) => {
+  button.addEventListener("click", () => switchView(button.dataset.viewTarget));
+});
 controls.searchInput.addEventListener("input", (event) => {
   state.search = event.target.value;
   renderInventory();
@@ -755,6 +799,11 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+window.addEventListener("hashchange", () => {
+  switchView(getInitialView(), { updateHash: false });
+});
+
 loadItems();
+switchView(getInitialView(), { updateHash: false, scroll: false });
 resetForm();
 render();

@@ -93,6 +93,48 @@ h2 {
   gap: 8px;
 }
 
+.app-tabs {
+  position: sticky;
+  top: max(8px, env(safe-area-inset-top));
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 6px;
+  border: 1px solid rgba(221, 228, 223, 0.94);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(28, 37, 35, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.tab-button {
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.tab-button.active {
+  border-color: var(--teal);
+  color: #fff;
+  background: var(--teal);
+}
+
+.view-panel {
+  display: block;
+}
+
+.view-panel[hidden] {
+  display: none;
+}
+
 .icon-button {
   display: grid;
   width: 42px;
@@ -182,6 +224,23 @@ th,
   overflow-wrap: anywhere;
 }
 
+.top-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nav-action {
+  min-width: 0;
+  min-height: 50px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 24px rgba(28, 37, 35, 0.08);
+  font-weight: 850;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
@@ -200,9 +259,9 @@ th,
 .entry-panel {
   display: grid;
   gap: 13px;
+  width: min(100%, 560px);
+  margin: 0 auto;
   padding: 15px;
-  position: sticky;
-  top: 14px;
 }
 
 .inventory-panel {

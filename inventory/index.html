@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=10" />
+    <link rel="stylesheet" href="./styles.css?v=11" />
   </head>
   <body>
     <main class="app-shell">
@@ -46,26 +46,39 @@
         </div>
       </header>
 
-      <section class="summary-grid" aria-label="集計">
-        <article class="summary-tile">
-          <span>在庫数</span>
-          <strong id="stockCount">0</strong>
-        </article>
-        <article class="summary-tile">
-          <span>在庫原価</span>
-          <strong id="stockCost">¥0</strong>
-        </article>
-        <article class="summary-tile">
-          <span>今月売上</span>
-          <strong id="monthlySales">¥0</strong>
-        </article>
-        <article class="summary-tile">
-          <span>今月利益</span>
-          <strong id="monthlyProfit">¥0</strong>
-        </article>
+      <nav class="app-tabs" aria-label="ページ切替">
+        <button class="tab-button active" type="button" data-view-tab="top" aria-selected="true">トップ</button>
+        <button class="tab-button" type="button" data-view-tab="entry" aria-selected="false">商品登録</button>
+        <button class="tab-button" type="button" data-view-tab="inventory" aria-selected="false">在庫管理</button>
+      </nav>
+
+      <section class="view-panel active" id="topView" data-view-panel="top" aria-label="トップ">
+        <section class="summary-grid" aria-label="集計">
+          <article class="summary-tile">
+            <span>在庫数</span>
+            <strong id="stockCount">0</strong>
+          </article>
+          <article class="summary-tile">
+            <span>在庫原価</span>
+            <strong id="stockCost">¥0</strong>
+          </article>
+          <article class="summary-tile">
+            <span>今月売上</span>
+            <strong id="monthlySales">¥0</strong>
+          </article>
+          <article class="summary-tile">
+            <span>今月利益</span>
+            <strong id="monthlyProfit">¥0</strong>
+          </article>
+        </section>
+
+        <section class="top-actions" aria-label="主要操作">
+          <button class="nav-action" type="button" data-view-target="entry">商品登録</button>
+          <button class="nav-action" type="button" data-view-target="inventory">在庫管理</button>
+        </section>
       </section>
 
-      <section class="workspace">
+      <section class="view-panel" id="entryView" data-view-panel="entry" aria-label="商品登録" hidden>
         <form class="entry-panel" id="itemForm" autocomplete="off">
           <div class="panel-heading">
             <div>
@@ -186,7 +199,9 @@
 
           <button class="primary-button" type="submit" id="saveButton">保存</button>
         </form>
+      </section>
 
+      <section class="view-panel" id="inventoryView" data-view-panel="inventory" aria-label="在庫管理" hidden>
         <section class="inventory-panel" aria-labelledby="inventoryTitle">
           <div class="panel-heading inventory-heading">
             <div>
@@ -251,6 +266,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=2" defer></script>
-    <script src="./app.js?v=10" defer></script>
+    <script src="./app.js?v=11" defer></script>
   </body>
 </html>
