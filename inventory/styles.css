@@ -349,6 +349,10 @@ th,
   gap: 10px;
 }
 
+.field-row.date-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .field-row.compact {
   grid-template-columns: 0.72fr 1.28fr;
 }
@@ -496,7 +500,7 @@ select:focus,
 
 table {
   width: 100%;
-  min-width: 760px;
+  min-width: 1120px;
   border-collapse: collapse;
   background: #fff;
 }
@@ -555,6 +559,11 @@ tbody tr:last-child td {
   background: var(--teal-soft);
 }
 
+.status-badge[data-status="出品中"] {
+  color: var(--teal);
+  background: var(--teal-soft);
+}
+
 .status-badge[data-status="発送準備"],
 .status-badge[data-status="評価待ち"] {
   color: var(--blue);
@@ -570,6 +579,17 @@ tbody tr:last-child td {
 .profit-cell,
 .loss-text {
   color: var(--red);
+}
+
+.purchase-price-cell,
+.listing-date-cell,
+.sale-date-cell,
+.sale-days-cell,
+.sale-price-cell,
+.break-even-cell,
+.margin-cell {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .empty-state {
@@ -702,6 +722,7 @@ tbody tr:last-child td {
   .summary-grid,
   .month-detail-grid,
   .field-row,
+  .field-row.date-grid,
   .field-row.compact,
   .money-grid,
   .calculation-strip {

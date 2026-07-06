@@ -3,6 +3,7 @@ const defaultInventoryLoadedKey = "sedori-inventory-ledger:default-inventory-ver
 const defaultInventoryVersion = "management-csv-20260625-v1";
 const defaultFeeRate = 10;
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち", "完了"]);
+const stockFilterValue = "stock";
 
 const yenFormatter = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -31,6 +32,7 @@ const fields = {
   market: document.querySelector("#marketInput"),
   status: document.querySelector("#statusInput"),
   purchaseDate: document.querySelector("#purchaseDateInput"),
+  listingDate: document.querySelector("#listingDateInput"),
   saleDate: document.querySelector("#saleDateInput"),
   purchasePrice: document.querySelector("#purchasePriceInput"),
   salePrice: document.querySelector("#salePriceInput"),
@@ -192,6 +194,27 @@ function normalizeDate(value) {
   return `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
 }
 
+function parseLocalDate(value) {
+  const normalized = normalizeDate(value);
+  if (!normalized) return null;
+  const [year, month, day] = normalized.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function daysBetween(startDate, endDate) {
+  const start = parseLocalDate(startDate);
+  const end = parseLocalDate(endDate);
+  if (!start || !end) return null;
+  return Math.max(0, Math.round((end - start) / 86400000));
+}
+
+function formatSaleDays(item) {
+  const startDate = item.listingDate || item.purchaseDate;
+  const days = item.saleDate ? daysBetween(startDate, item.saleDate) : null;
+  return days === null ? "-" : `${numberFormatter.format(days)}日`;
+}
+
 function normalizeMarket(value) {
   const market = String(value || "").trim();
   if (!market) return "その他";
@@ -223,6 +246,7 @@ function readForm() {
     market: fields.market.value,
     status: fields.status.value,
     purchaseDate: fields.purchaseDate.value,
+    listingDate: fields.listingDate.value,
     saleDate: fields.saleDate.value,
     purchasePrice: parseMoney(fields.purchasePrice.value),
     salePrice: parseMoney(fields.salePrice.value),
@@ -267,6 +291,7 @@ function fillForm(item) {
   fields.market.value = normalizeMarket(item.market || "メルカリ");
   fields.status.value = normalizeStatus(item.status || "在庫");
   fields.purchaseDate.value = item.purchaseDate || "";
+  fields.listingDate.value = item.listingDate || "";
   fields.saleDate.value = item.saleDate || "";
   fields.purchasePrice.value = formatInput(item.purchasePrice);
   fields.salePrice.value = formatInput(item.salePrice);
@@ -301,6 +326,7 @@ function normalizeItem(item) {
     market: normalizeMarket(item.market || "メルカリ"),
     status: normalizeStatus(item.status || "在庫"),
     purchaseDate: item.purchaseDate || "",
+    listingDate: item.listingDate || "",
     saleDate: item.saleDate || "",
     purchasePrice: Number(item.purchasePrice) || 0,
     salePrice: Number(item.salePrice) || 0,
@@ -351,7 +377,11 @@ function getLatestSaleMonth() {
 function getFilteredItems() {
   const keyword = state.search.trim().toLowerCase();
   return state.items
-    .filter((item) => state.filterStatus === "all" || item.status === state.filterStatus)
+    .filter((item) => {
+      if (state.filterStatus === "all") return true;
+      if (state.filterStatus === stockFilterValue) return !soldStatuses.has(item.status);
+      return item.status === state.filterStatus;
+    })
     .filter((item) => {
       if (!keyword) return true;
       return [item.name, item.market, item.category, item.memo, item.sourceRef].some((value) =>
@@ -409,10 +439,14 @@ function createRow(item) {
       </div>
     </td>
     <td><span class="status-badge"></span></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td class="purchase-price-cell"></td>
+    <td class="listing-date-cell"></td>
+    <td class="sale-date-cell"></td>
+    <td class="sale-days-cell"></td>
+    <td class="sale-price-cell"></td>
+    <td class="break-even-cell"></td>
     <td class="profit-cell"></td>
+    <td class="margin-cell"></td>
     <td>
       <div class="row-actions">
         <button class="icon-button tiny edit-action" type="button" aria-label="編集" title="編集">
@@ -438,11 +472,16 @@ function createRow(item) {
   row.querySelector(".item-cell span").textContent = [item.market, item.category, item.memo].filter(Boolean).join(" / ");
   row.querySelector(".status-badge").textContent = item.status;
   row.querySelector(".status-badge").dataset.status = item.status;
-  row.children[2].textContent = item.saleDate || "-";
-  row.children[3].textContent = hasSalePrice ? formatYen(item.salePrice) : "未入力";
-  row.children[4].textContent = formatYen(calc.breakEven);
+  row.querySelector(".purchase-price-cell").textContent = formatYen(item.purchasePrice);
+  row.querySelector(".listing-date-cell").textContent = item.listingDate || "-";
+  row.querySelector(".sale-date-cell").textContent = item.saleDate || "-";
+  row.querySelector(".sale-days-cell").textContent = formatSaleDays(item);
+  row.querySelector(".sale-price-cell").textContent = hasSalePrice ? formatYen(item.salePrice) : "未入力";
+  row.querySelector(".break-even-cell").textContent = formatYen(calc.breakEven);
   row.querySelector(".profit-cell").textContent = hasSalePrice ? formatYen(calc.profit) : "-";
   row.querySelector(".profit-cell").classList.toggle("loss-text", hasSalePrice && calc.profit < 0);
+  row.querySelector(".margin-cell").textContent = hasSalePrice ? `${percentFormatter.format(calc.margin)}%` : "-";
+  row.querySelector(".margin-cell").classList.toggle("loss-text", hasSalePrice && calc.margin < 0);
   row.querySelector(".edit-action").addEventListener("click", () => fillForm(item));
   row.querySelector(".delete-action").addEventListener("click", () => deleteItem(item.id));
 
@@ -481,6 +520,11 @@ function saveItem(event) {
     fields.saleDate.value = item.saleDate;
   }
 
+  if (item.status === "出品中" && !item.listingDate) {
+    item.listingDate = today();
+    fields.listingDate.value = item.listingDate;
+  }
+
   const index = state.items.findIndex((existing) => existing.id === item.id);
   if (index >= 0) {
     state.items[index] = item;
@@ -510,6 +554,7 @@ function exportCsv() {
     "販売先",
     "状態",
     "仕入日",
+    "出品日",
     "販売日",
     "仕入れ値",
     "販売価格",
@@ -519,6 +564,7 @@ function exportCsv() {
     "手数料実額",
     "損益分岐点",
     "利益",
+    "利益率",
     "カテゴリ",
     "管理元ID",
     "メモ",
@@ -531,6 +577,7 @@ function exportCsv() {
       item.market,
       item.status,
       item.purchaseDate,
+      item.listingDate,
       item.saleDate,
       item.purchasePrice,
       item.salePrice,
@@ -540,6 +587,7 @@ function exportCsv() {
       item.actualFee ?? "",
       calc.breakEven,
       item.salePrice > 0 ? Math.round(calc.profit) : "",
+      item.salePrice > 0 ? `${percentFormatter.format(calc.margin)}%` : "",
       item.category,
       item.sourceRef,
       item.memo,
@@ -614,6 +662,8 @@ function isManagementSheetCsv(rows) {
 }
 
 function mapManagementSheetRows(rows) {
+  const listingDateColumn = columnIndex(rows[3] || [], ["出品日", "掲載日", "出品開始日"]);
+
   return rows
     .filter((row) => /^\d+$/.test(row[0] || "") && row[3])
     .map((row) => {
@@ -632,6 +682,7 @@ function mapManagementSheetRows(rows) {
         market: normalizeMarket(row[11]),
         status,
         purchaseDate: normalizeDate(row[6]),
+        listingDate: listingDateColumn >= 0 ? normalizeDate(row[listingDateColumn]) : "",
         saleDate: normalizeDate(row[25]),
         purchasePrice,
         salePrice,
@@ -651,6 +702,7 @@ function mapInventoryLedgerRows(rows) {
   const marketColumn = columnIndex(header, ["販売先"], 1);
   const statusColumn = columnIndex(header, ["状態"], 2);
   const purchaseDateColumn = columnIndex(header, ["仕入日"], 3);
+  const listingDateColumn = columnIndex(header, ["出品日", "掲載日", "出品開始日"]);
   const saleDateColumn = columnIndex(header, ["販売日"], 4);
   const purchasePriceColumn = columnIndex(header, ["仕入れ値"], 5);
   const salePriceColumn = columnIndex(header, ["販売価格"], 6);
@@ -669,6 +721,7 @@ function mapInventoryLedgerRows(rows) {
         market: normalizeMarket(row[marketColumn]),
         status: normalizeStatus(row[statusColumn]),
         purchaseDate: normalizeDate(row[purchaseDateColumn]),
+        listingDate: listingDateColumn >= 0 ? normalizeDate(row[listingDateColumn]) : "",
         saleDate: normalizeDate(row[saleDateColumn]),
         purchasePrice: parseMoney(row[purchasePriceColumn]),
         salePrice: parseMoney(row[salePriceColumn]),
@@ -686,7 +739,7 @@ function mapInventoryLedgerRows(rows) {
 
 function getItemIdentity(item) {
   if (item.sourceRef) return item.sourceRef;
-  return [item.name, item.purchaseDate, item.saleDate, item.purchasePrice, item.salePrice, item.market].join("|");
+  return [item.name, item.purchaseDate, item.listingDate, item.saleDate, item.purchasePrice, item.salePrice, item.market].join("|");
 }
 
 function mergeImportedItems(importedItems) {

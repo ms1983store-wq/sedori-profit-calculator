@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=12" />
+    <link rel="stylesheet" href="./styles.css?v=13" />
   </head>
   <body>
     <main class="app-shell">
@@ -162,10 +162,14 @@
             </label>
           </div>
 
-          <div class="field-row">
+          <div class="field-row date-grid">
             <label class="field">
               <span>仕入日</span>
               <input id="purchaseDateInput" type="date" />
+            </label>
+            <label class="field">
+              <span>出品日</span>
+              <input id="listingDateInput" type="date" />
             </label>
             <label class="field highlight-field">
               <span>販売日</span>
@@ -252,10 +256,9 @@
 
           <div class="filter-row" id="statusFilters" aria-label="状態フィルター">
             <button type="button" class="filter-chip active" data-status="all">すべて</button>
-            <button type="button" class="filter-chip" data-status="在庫">在庫</button>
+            <button type="button" class="filter-chip" data-status="stock">在庫</button>
             <button type="button" class="filter-chip" data-status="売却済み">売却済み</button>
             <button type="button" class="filter-chip" data-status="出品前">出品前</button>
-            <button type="button" class="filter-chip" data-status="出品中">出品中</button>
             <button type="button" class="filter-chip" data-status="発送準備">発送準備</button>
             <button type="button" class="filter-chip" data-status="評価待ち">評価待ち</button>
             <button type="button" class="filter-chip" data-status="完了">完了</button>
@@ -267,10 +270,14 @@
                 <tr>
                   <th>商品</th>
                   <th>状態</th>
+                  <th>仕入れ値</th>
+                  <th>出品日</th>
                   <th>販売日</th>
+                  <th>販売まで日数</th>
                   <th>販売価格</th>
                   <th>損益分岐点</th>
                   <th>利益</th>
+                  <th>利益率</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -302,6 +309,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=2" defer></script>
-    <script src="./app.js?v=12" defer></script>
+    <script src="./app.js?v=13" defer></script>
   </body>
 </html>
