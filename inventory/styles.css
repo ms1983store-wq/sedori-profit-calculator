@@ -496,57 +496,57 @@ select:focus,
 }
 
 .filter-chip[data-status="all"] {
-  --status-color: #5b6460;
-  --status-bg: #f2f5f3;
-  --status-border: #d5ded8;
+  --status-color: #475569;
+  --status-bg: #f1f5f9;
+  --status-border: #cbd5e1;
 }
 
 .filter-chip[data-status="stock"],
 .status-badge[data-status="在庫"] {
-  --status-color: var(--teal);
-  --status-bg: var(--teal-soft);
-  --status-border: #cadedc;
+  --status-color: #059669;
+  --status-bg: #d1fae5;
+  --status-border: #86efac;
 }
 
 .filter-chip[data-status="出品前"],
 .status-badge[data-status="出品前"] {
-  --status-color: #8c6500;
-  --status-bg: #fff3cd;
-  --status-border: #efd990;
+  --status-color: #b45309;
+  --status-bg: #fef3c7;
+  --status-border: #facc15;
 }
 
 .status-badge[data-status="出品中"] {
-  --status-color: #0b5cad;
-  --status-bg: #e7f0ff;
-  --status-border: #bfd5f5;
+  --status-color: #2563eb;
+  --status-bg: #dbeafe;
+  --status-border: #60a5fa;
 }
 
 .filter-chip[data-status="発送準備"],
 .status-badge[data-status="発送準備"] {
-  --status-color: #985200;
-  --status-bg: #fff0e0;
-  --status-border: #edc28f;
+  --status-color: #ea580c;
+  --status-bg: #ffedd5;
+  --status-border: #fb923c;
 }
 
 .filter-chip[data-status="評価待ち"],
 .status-badge[data-status="評価待ち"] {
-  --status-color: #6848a8;
-  --status-bg: #f0ebff;
-  --status-border: #d6caf4;
+  --status-color: #9333ea;
+  --status-bg: #f3e8ff;
+  --status-border: #c084fc;
 }
 
 .filter-chip[data-status="売却済み"],
 .status-badge[data-status="売却済み"] {
-  --status-color: #4f6172;
-  --status-bg: #eef3f7;
-  --status-border: #cfd9e2;
+  --status-color: #db2777;
+  --status-bg: #fce7f3;
+  --status-border: #f472b6;
 }
 
 .filter-chip[data-status="完了"],
 .status-badge[data-status="完了"] {
-  --status-color: #2f6f4e;
-  --status-bg: #e8f5ee;
-  --status-border: #bfdccf;
+  --status-color: #0f766e;
+  --status-bg: #ccfbf1;
+  --status-border: #2dd4bf;
 }
 
 .table-wrap {
