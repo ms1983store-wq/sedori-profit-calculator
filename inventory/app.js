@@ -21,6 +21,7 @@ const state = {
   filterStatus: "all",
   search: "",
   activeView: "top",
+  selectedMonth: currentMonth(),
 };
 
 const form = document.querySelector("#itemForm");
@@ -48,6 +49,11 @@ const output = {
   stockCost: document.querySelector("#stockCost"),
   monthlySales: document.querySelector("#monthlySales"),
   monthlyProfit: document.querySelector("#monthlyProfit"),
+  summaryMonthInput: document.querySelector("#summaryMonthInput"),
+  monthlySoldCount: document.querySelector("#monthlySoldCount"),
+  monthlyCost: document.querySelector("#monthlyCost"),
+  monthlyAverageProfit: document.querySelector("#monthlyAverageProfit"),
+  monthlyRoi: document.querySelector("#monthlyRoi"),
   inventoryBody: document.querySelector("#inventoryBody"),
   emptyState: document.querySelector("#emptyState"),
 };
@@ -61,6 +67,8 @@ const controls = {
   csvPasteInput: document.querySelector("#csvPasteInput"),
   confirmPasteImportButton: document.querySelector("#confirmPasteImportButton"),
   closePasteDialogButton: document.querySelector("#closePasteDialogButton"),
+  previousMonthButton: document.querySelector("#previousMonthButton"),
+  nextMonthButton: document.querySelector("#nextMonthButton"),
   searchInput: document.querySelector("#searchInput"),
   statusFilters: document.querySelector("#statusFilters"),
   viewTabs: Array.from(document.querySelectorAll("[data-view-tab]")),
@@ -132,6 +140,16 @@ function today() {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function currentMonth() {
+  return today().slice(0, 7);
+}
+
+function shiftMonth(monthString, amount) {
+  const [year, month] = String(monthString || currentMonth()).split("-").map(Number);
+  const date = new Date(year, (month || 1) - 1 + amount, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function getInitialView() {
@@ -318,11 +336,16 @@ function seedDefaultInventory() {
   localStorage.setItem(defaultInventoryLoadedKey, defaultInventoryVersion);
 }
 
-function isCurrentMonth(dateString) {
-  if (!dateString) return false;
-  const now = new Date();
-  const date = new Date(`${dateString}T00:00:00`);
-  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+function isSameMonth(dateString, monthString) {
+  return Boolean(dateString && monthString && dateString.slice(0, 7) === monthString);
+}
+
+function getLatestSaleMonth() {
+  return state.items
+    .filter((item) => soldStatuses.has(item.status) && item.saleDate)
+    .map((item) => item.saleDate.slice(0, 7))
+    .sort()
+    .at(-1);
 }
 
 function getFilteredItems() {
@@ -346,15 +369,25 @@ function getFilteredItems() {
 function renderSummary() {
   const activeItems = state.items.filter((item) => !soldStatuses.has(item.status));
   const stockCost = activeItems.reduce((sum, item) => sum + getCalculations(item).totalCost, 0);
-  const monthlyItems = state.items.filter((item) => soldStatuses.has(item.status) && isCurrentMonth(item.saleDate));
+  const monthlyItems = state.items.filter((item) => soldStatuses.has(item.status) && isSameMonth(item.saleDate, state.selectedMonth));
   const monthlySales = monthlyItems.reduce((sum, item) => sum + item.salePrice, 0);
   const monthlyProfit = monthlyItems.reduce((sum, item) => sum + getCalculations(item).profit, 0);
+  const monthlyCost = monthlyItems.reduce((sum, item) => sum + getCalculations(item).totalCost, 0);
+  const averageProfit = monthlyItems.length ? monthlyProfit / monthlyItems.length : 0;
+  const roi = monthlyCost > 0 ? (monthlyProfit / monthlyCost) * 100 : 0;
 
+  output.summaryMonthInput.value = state.selectedMonth;
   output.stockCount.textContent = numberFormatter.format(activeItems.length);
   output.stockCost.textContent = formatYen(stockCost);
   output.monthlySales.textContent = formatYen(monthlySales);
   output.monthlyProfit.textContent = formatYen(monthlyProfit);
+  output.monthlySoldCount.textContent = numberFormatter.format(monthlyItems.length);
+  output.monthlyCost.textContent = formatYen(monthlyCost);
+  output.monthlyAverageProfit.textContent = formatYen(averageProfit);
+  output.monthlyRoi.textContent = `${percentFormatter.format(roi)}%`;
   output.monthlyProfit.classList.toggle("loss-text", monthlyProfit < 0);
+  output.monthlyAverageProfit.classList.toggle("loss-text", averageProfit < 0);
+  output.monthlyRoi.classList.toggle("loss-text", roi < 0);
 }
 
 function renderInventory() {
@@ -766,6 +799,19 @@ controls.confirmPasteImportButton?.addEventListener("click", () => {
     showToast(error.message || "CSVを読み込めませんでした");
   }
 });
+controls.previousMonthButton.addEventListener("click", () => {
+  state.selectedMonth = shiftMonth(state.selectedMonth, -1);
+  renderSummary();
+});
+controls.nextMonthButton.addEventListener("click", () => {
+  state.selectedMonth = shiftMonth(state.selectedMonth, 1);
+  renderSummary();
+});
+output.summaryMonthInput.addEventListener("input", (event) => {
+  if (!event.target.value) return;
+  state.selectedMonth = event.target.value;
+  renderSummary();
+});
 controls.viewTabs.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.viewTab));
 });
@@ -804,6 +850,7 @@ window.addEventListener("hashchange", () => {
 });
 
 loadItems();
+state.selectedMonth = getLatestSaleMonth() || currentMonth();
 switchView(getInitialView(), { updateHash: false, scroll: false });
 resetForm();
 render();

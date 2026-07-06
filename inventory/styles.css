@@ -135,6 +135,27 @@ h2 {
   display: none;
 }
 
+.month-toolbar {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 220px) 42px;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.month-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.month-field span,
+.month-detail-grid span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 780;
+}
+
 .icon-button {
   display: grid;
   width: 42px;
@@ -221,6 +242,32 @@ th,
   min-width: 0;
   font-size: clamp(1.34rem, 3.4vw, 2rem);
   line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.month-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.month-detail-grid article {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  min-height: 74px;
+  align-content: center;
+  padding: 12px;
+  border: 1px solid rgba(221, 228, 223, 0.94);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.month-detail-grid strong {
+  min-width: 0;
+  font-size: 1.08rem;
+  line-height: 1.08;
   overflow-wrap: anywhere;
 }
 
@@ -624,6 +671,10 @@ tbody tr:last-child td {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .month-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .workspace {
     grid-template-columns: 1fr;
   }
@@ -649,6 +700,7 @@ tbody tr:last-child td {
   }
 
   .summary-grid,
+  .month-detail-grid,
   .field-row,
   .field-row.compact,
   .money-grid,
@@ -662,5 +714,9 @@ tbody tr:last-child td {
 
   .calculation-strip {
     gap: 10px;
+  }
+
+  .month-toolbar {
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
   }
 }
