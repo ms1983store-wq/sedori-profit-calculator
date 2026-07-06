@@ -474,12 +474,15 @@ select:focus,
 }
 
 .filter-chip {
+  --status-color: #5b6460;
+  --status-bg: #edf1ee;
+  --status-border: #d5ded8;
   flex: 0 0 auto;
   min-height: 36px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--status-border);
   border-radius: 999px;
-  color: var(--muted);
-  background: #fff;
+  color: var(--status-color);
+  background: var(--status-bg);
   padding: 0 13px;
   font-size: 0.86rem;
   font-weight: 820;
@@ -487,9 +490,63 @@ select:focus,
 }
 
 .filter-chip.active {
-  border-color: var(--teal);
+  border-color: var(--status-color);
   color: #fff;
-  background: var(--teal);
+  background: var(--status-color);
+}
+
+.filter-chip[data-status="all"] {
+  --status-color: #5b6460;
+  --status-bg: #f2f5f3;
+  --status-border: #d5ded8;
+}
+
+.filter-chip[data-status="stock"],
+.status-badge[data-status="在庫"] {
+  --status-color: var(--teal);
+  --status-bg: var(--teal-soft);
+  --status-border: #cadedc;
+}
+
+.filter-chip[data-status="出品前"],
+.status-badge[data-status="出品前"] {
+  --status-color: #8c6500;
+  --status-bg: #fff3cd;
+  --status-border: #efd990;
+}
+
+.status-badge[data-status="出品中"] {
+  --status-color: #0b5cad;
+  --status-bg: #e7f0ff;
+  --status-border: #bfd5f5;
+}
+
+.filter-chip[data-status="発送準備"],
+.status-badge[data-status="発送準備"] {
+  --status-color: #985200;
+  --status-bg: #fff0e0;
+  --status-border: #edc28f;
+}
+
+.filter-chip[data-status="評価待ち"],
+.status-badge[data-status="評価待ち"] {
+  --status-color: #6848a8;
+  --status-bg: #f0ebff;
+  --status-border: #d6caf4;
+}
+
+.filter-chip[data-status="売却済み"],
+.status-badge[data-status="売却済み"] {
+  --status-color: #4f6172;
+  --status-bg: #eef3f7;
+  --status-border: #cfd9e2;
+}
+
+.filter-chip[data-status="完了"],
+.status-badge[data-status="完了"] {
+  --status-color: #2f6f4e;
+  --status-bg: #e8f5ee;
+  --status-border: #bfdccf;
 }
 
 .table-wrap {
@@ -536,44 +593,21 @@ tbody tr:last-child td {
 }
 
 .status-badge {
+  --status-color: var(--teal);
+  --status-bg: var(--teal-soft);
+  --status-border: #cadedc;
   display: inline-flex;
   min-width: 70px;
   min-height: 30px;
   align-items: center;
   justify-content: center;
+  border: 1px solid var(--status-border);
   border-radius: 999px;
-  color: var(--teal);
-  background: var(--teal-soft);
+  color: var(--status-color);
+  background: var(--status-bg);
   font-size: 0.78rem;
   font-weight: 850;
   white-space: nowrap;
-}
-
-.status-badge[data-status="出品前"] {
-  color: #75600d;
-  background: var(--amber-soft);
-}
-
-.status-badge[data-status="在庫"] {
-  color: var(--teal);
-  background: var(--teal-soft);
-}
-
-.status-badge[data-status="出品中"] {
-  color: var(--teal);
-  background: var(--teal-soft);
-}
-
-.status-badge[data-status="発送準備"],
-.status-badge[data-status="評価待ち"] {
-  color: var(--blue);
-  background: var(--blue-soft);
-}
-
-.status-badge[data-status="売却済み"],
-.status-badge[data-status="完了"] {
-  color: #5b6460;
-  background: #edf1ee;
 }
 
 .profit-cell,
