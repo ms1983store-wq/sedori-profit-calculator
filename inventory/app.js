@@ -66,6 +66,7 @@ const controls = {
   exportButton: document.querySelector("#exportButton"),
   importInput: document.querySelector("#importInput"),
   pasteImportButton: document.querySelector("#pasteImportButton"),
+  reloadDefaultButton: document.querySelector("#reloadDefaultButton"),
   csvPasteDialog: document.querySelector("#csvPasteDialog"),
   csvPasteInput: document.querySelector("#csvPasteInput"),
   confirmPasteImportButton: document.querySelector("#confirmPasteImportButton"),
@@ -813,6 +814,30 @@ function importText(text) {
   return { count: importedItems.length, ...result };
 }
 
+function reloadDefaultInventory() {
+  const defaultItems = getDefaultInventoryItems().map(normalizeItem).filter((item) => item.name);
+  if (!defaultItems.length) {
+    showToast("初期データが見つかりませんでした");
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "スマホ内の保存データを削除して、公開中の初期データを入れ直します。必要なら先にCSVを書き出してください。実行しますか？",
+  );
+  if (!confirmed) return;
+
+  state.items = defaultItems;
+  state.filterStatus = "all";
+  state.search = "";
+  controls.searchInput.value = "";
+  localStorage.setItem(defaultInventoryLoadedKey, defaultInventoryVersion);
+  saveItems();
+  state.selectedMonth = getLatestSaleMonth() || currentMonth();
+  resetForm({ focus: false });
+  render();
+  showToast(`${state.items.length}件の初期データに更新しました`);
+}
+
 async function importCsv(event) {
   const [file] = event.target.files;
   if (!file) return;
@@ -865,6 +890,7 @@ controls.resetButton.addEventListener("click", resetForm);
 controls.exportButton.addEventListener("click", exportCsv);
 controls.importInput.addEventListener("change", importCsv);
 controls.pasteImportButton?.addEventListener("click", openPasteDialog);
+controls.reloadDefaultButton?.addEventListener("click", reloadDefaultInventory);
 controls.closePasteDialogButton?.addEventListener("click", closePasteDialog);
 controls.confirmPasteImportButton?.addEventListener("click", () => {
   try {

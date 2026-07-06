@@ -215,6 +215,12 @@ h2 {
   background: #fff8f7;
 }
 
+.icon-button.warning {
+  color: #b45309;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
 .file-action {
   position: relative;
   overflow: hidden;

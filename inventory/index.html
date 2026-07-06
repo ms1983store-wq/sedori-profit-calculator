@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=17" />
+    <link rel="stylesheet" href="./styles.css?v=18" />
   </head>
   <body>
     <main class="app-shell">
@@ -41,6 +41,20 @@
               <path d="M9 4a3 3 0 0 1 6 0v2H9Z" />
               <path d="M9 14h6" />
               <path d="M9 18h4" />
+            </svg>
+          </button>
+          <button
+            class="icon-button warning"
+            type="button"
+            id="reloadDefaultButton"
+            aria-label="保存データをリセットして初期データを入れ直す"
+            title="保存データをリセットして初期データを入れ直す"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 12a9 9 0 0 0-15.5-6.36L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 15.5 6.36L21 16" />
+              <path d="M16 16h5v5" />
             </svg>
           </button>
         </div>
@@ -313,6 +327,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=2" defer></script>
-    <script src="./app.js?v=14" defer></script>
+    <script src="./app.js?v=18" defer></script>
   </body>
 </html>
