@@ -1,9 +1,10 @@
-const cacheName = "sedori-inventory-ledger-v8";
+const cacheName = "sedori-inventory-ledger-v9";
 const cachePrefix = "sedori-inventory-ledger-";
 const assets = [
   "./",
   "./index.html",
   "./styles.css",
+  "./default-inventory.js",
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon-192.svg",

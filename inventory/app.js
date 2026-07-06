@@ -1,4 +1,6 @@
 const storageKey = "sedori-inventory-ledger:v1";
+const defaultInventoryLoadedKey = "sedori-inventory-ledger:default-inventory-version";
+const defaultInventoryVersion = "management-csv-20260625-v1";
 const defaultFeeRate = 10;
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち", "完了"]);
 
@@ -227,8 +229,13 @@ function saveItems() {
 }
 
 function loadItems() {
-  const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
-  state.items = Array.isArray(saved) ? saved.map(normalizeItem) : [];
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    state.items = Array.isArray(saved) ? saved.map(normalizeItem) : [];
+  } catch {
+    state.items = [];
+  }
+  seedDefaultInventory();
 }
 
 function normalizeItem(item) {
@@ -251,6 +258,26 @@ function normalizeItem(item) {
     memo: item.memo || "",
     updatedAt: item.updatedAt || new Date().toISOString(),
   };
+}
+
+function getDefaultInventoryItems() {
+  return Array.isArray(globalThis.SEDORI_DEFAULT_INVENTORY) ? globalThis.SEDORI_DEFAULT_INVENTORY : [];
+}
+
+function seedDefaultInventory() {
+  const defaultItems = getDefaultInventoryItems().map(normalizeItem).filter((item) => item.name);
+  if (!defaultItems.length) return;
+  if (localStorage.getItem(defaultInventoryLoadedKey) === defaultInventoryVersion) return;
+
+  const existingIdentities = new Set(state.items.map(getItemIdentity));
+  const additions = defaultItems.filter((item) => !existingIdentities.has(getItemIdentity(item)));
+
+  if (additions.length) {
+    state.items = [...additions, ...state.items];
+    saveItems();
+  }
+
+  localStorage.setItem(defaultInventoryLoadedKey, defaultInventoryVersion);
 }
 
 function isCurrentMonth(dateString) {
