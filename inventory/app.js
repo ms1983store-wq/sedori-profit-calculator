@@ -456,22 +456,22 @@ function createRow(item) {
   const row = document.createElement("tr");
 
   row.innerHTML = `
-    <td>
+    <td data-label="商品">
       <div class="item-cell">
         <strong></strong>
         <span></span>
       </div>
     </td>
-    <td><span class="status-badge"></span></td>
-    <td class="purchase-price-cell"></td>
-    <td class="listing-date-cell"></td>
-    <td class="sale-date-cell"></td>
-    <td class="sale-days-cell"></td>
-    <td class="sale-price-cell"></td>
-    <td class="break-even-cell"></td>
-    <td class="profit-cell"></td>
-    <td class="margin-cell"></td>
-    <td>
+    <td data-label="状態"><span class="status-badge"></span></td>
+    <td class="purchase-price-cell" data-label="仕入れ値"></td>
+    <td class="listing-date-cell" data-label="出品日"></td>
+    <td class="sale-date-cell" data-label="販売日"></td>
+    <td class="sale-days-cell" data-label="販売まで"></td>
+    <td class="sale-price-cell" data-label="販売価格"></td>
+    <td class="break-even-cell" data-label="損益分岐点"></td>
+    <td class="profit-cell" data-label="利益"></td>
+    <td class="margin-cell" data-label="利益率"></td>
+    <td data-label="操作">
       <div class="row-actions">
         <button class="icon-button tiny edit-action" type="button" aria-label="編集" title="編集">
           <svg viewBox="0 0 24 24" aria-hidden="true">

@@ -761,6 +761,107 @@ tbody tr:last-child td {
   }
 }
 
+@media (max-width: 720px) {
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  table,
+  thead,
+  tbody,
+  tr,
+  td {
+    display: block;
+  }
+
+  table {
+    min-width: 0;
+    background: transparent;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  tbody tr {
+    display: grid;
+    gap: 0;
+    padding: 12px;
+    border: 1px solid rgba(221, 228, 223, 0.94);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 10px 26px rgba(28, 37, 35, 0.08);
+  }
+
+  td {
+    display: grid;
+    grid-template-columns: minmax(88px, 34%) minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    min-width: 0;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(221, 228, 223, 0.72);
+  }
+
+  td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 850;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 1px solid rgba(221, 228, 223, 0.72);
+  }
+
+  td:last-child {
+    border-bottom: 0;
+  }
+
+  td[data-label="商品"] {
+    display: block;
+    padding-top: 0;
+  }
+
+  td[data-label="商品"]::before,
+  td[data-label="操作"]::before {
+    display: none;
+  }
+
+  td[data-label="操作"] {
+    display: block;
+    padding-bottom: 0;
+  }
+
+  .item-cell {
+    min-width: 0;
+  }
+
+  .status-badge,
+  .purchase-price-cell,
+  .listing-date-cell,
+  .sale-date-cell,
+  .sale-days-cell,
+  .sale-price-cell,
+  .break-even-cell,
+  .profit-cell,
+  .margin-cell {
+    justify-self: end;
+    text-align: right;
+  }
+
+  .row-actions {
+    justify-content: flex-end;
+  }
+}
+
 @media (max-width: 560px) {
   .app-shell {
     padding-inline: 12px;
