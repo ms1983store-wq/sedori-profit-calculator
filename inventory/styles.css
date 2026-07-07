@@ -792,7 +792,8 @@ tbody tr:last-child td {
 
   tbody tr {
     display: grid;
-    gap: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     padding: 12px;
     border: 1px solid rgba(221, 228, 223, 0.94);
     border-radius: 8px;
@@ -802,18 +803,20 @@ tbody tr:last-child td {
 
   td {
     display: grid;
-    grid-template-columns: minmax(88px, 34%) minmax(0, 1fr);
-    gap: 10px;
-    align-items: center;
+    gap: 4px;
+    align-content: center;
     min-width: 0;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(221, 228, 223, 0.72);
+    min-height: 58px;
+    padding: 8px;
+    border: 1px solid rgba(221, 228, 223, 0.72);
+    border-radius: 8px;
+    background: rgba(248, 250, 249, 0.76);
   }
 
   td::before {
     content: attr(data-label);
     color: var(--muted);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 850;
   }
 
@@ -822,12 +825,22 @@ tbody tr:last-child td {
   }
 
   td:last-child {
-    border-bottom: 0;
+    border-bottom: 1px solid rgba(221, 228, 223, 0.72);
   }
 
   td[data-label="商品"] {
     display: block;
-    padding-top: 0;
+    grid-column: 1 / -1;
+    min-height: 0;
+    padding: 0 0 4px;
+    border: 0;
+    background: transparent;
+  }
+
+  td[data-label="状態"],
+  td[data-label="操作"] {
+    min-height: 44px;
+    padding-block: 6px;
   }
 
   td[data-label="商品"]::before,
@@ -836,8 +849,8 @@ tbody tr:last-child td {
   }
 
   td[data-label="操作"] {
-    display: block;
-    padding-bottom: 0;
+    display: grid;
+    justify-content: end;
   }
 
   .item-cell {
@@ -853,8 +866,8 @@ tbody tr:last-child td {
   .break-even-cell,
   .profit-cell,
   .margin-cell {
-    justify-self: end;
-    text-align: right;
+    justify-self: start;
+    text-align: left;
   }
 
   .row-actions {
