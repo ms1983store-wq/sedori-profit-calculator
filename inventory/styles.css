@@ -534,48 +534,55 @@ select:focus,
 }
 
 .filter-chip[data-status="stock"],
-.status-badge[data-status="在庫"] {
+.status-badge[data-status="在庫"],
+.status-select[data-status="在庫"] {
   --status-color: #059669;
   --status-bg: #d1fae5;
   --status-border: #86efac;
 }
 
 .filter-chip[data-status="出品前"],
-.status-badge[data-status="出品前"] {
+.status-badge[data-status="出品前"],
+.status-select[data-status="出品前"] {
   --status-color: #b45309;
   --status-bg: #fef3c7;
   --status-border: #facc15;
 }
 
-.status-badge[data-status="出品中"] {
+.status-badge[data-status="出品中"],
+.status-select[data-status="出品中"] {
   --status-color: #2563eb;
   --status-bg: #dbeafe;
   --status-border: #60a5fa;
 }
 
 .filter-chip[data-status="発送準備"],
-.status-badge[data-status="発送準備"] {
+.status-badge[data-status="発送準備"],
+.status-select[data-status="発送準備"] {
   --status-color: #ea580c;
   --status-bg: #ffedd5;
   --status-border: #fb923c;
 }
 
 .filter-chip[data-status="評価待ち"],
-.status-badge[data-status="評価待ち"] {
+.status-badge[data-status="評価待ち"],
+.status-select[data-status="評価待ち"] {
   --status-color: #9333ea;
   --status-bg: #f3e8ff;
   --status-border: #c084fc;
 }
 
 .filter-chip[data-status="売却済み"],
-.status-badge[data-status="売却済み"] {
+.status-badge[data-status="売却済み"],
+.status-select[data-status="売却済み"] {
   --status-color: #db2777;
   --status-bg: #fce7f3;
   --status-border: #f472b6;
 }
 
 .filter-chip[data-status="完了"],
-.status-badge[data-status="完了"] {
+.status-badge[data-status="完了"],
+.status-select[data-status="完了"] {
   --status-color: #0f766e;
   --status-bg: #ccfbf1;
   --status-border: #2dd4bf;
@@ -640,6 +647,30 @@ tbody tr:last-child td {
   font-size: 0.78rem;
   font-weight: 850;
   white-space: nowrap;
+}
+
+.status-select {
+  width: auto;
+  height: 32px;
+  min-width: 86px;
+  appearance: none;
+  outline: 0;
+  padding: 0 26px 0 12px;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--status-color) 50%) calc(100% - 14px) 50% / 5px 5px no-repeat,
+    linear-gradient(135deg, var(--status-color) 50%, transparent 50%) calc(100% - 9px) 50% / 5px 5px no-repeat,
+    var(--status-bg);
+  text-align: center;
+  text-align-last: center;
+}
+
+.status-select:focus {
+  box-shadow: 0 0 0 3px rgba(17, 100, 102, 0.16);
+}
+
+.status-select option {
+  color: var(--ink);
+  background: #fff;
 }
 
 .profit-cell,
@@ -940,21 +971,140 @@ tbody tr:last-child td {
 
 @media (max-width: 560px) {
   .app-shell {
-    padding-inline: 12px;
+    padding: max(8px, env(safe-area-inset-top)) 10px max(12px, env(safe-area-inset-bottom));
   }
 
-  .app-header,
+  .app-header {
+    align-items: center;
+    flex-direction: row;
+    gap: 8px;
+    padding: 7px 0 9px;
+  }
+
   .inventory-heading {
     align-items: stretch;
     flex-direction: column;
   }
 
+  .app-header > div:first-child {
+    min-width: 0;
+  }
+
+  .eyebrow {
+    margin-bottom: 2px;
+    font-size: 0.62rem;
+  }
+
+  h1 {
+    font-size: 1.34rem;
+  }
+
   .header-actions {
+    flex: 0 0 auto;
+    gap: 5px;
     justify-content: flex-end;
   }
 
-  .summary-grid,
-  .month-detail-grid,
+  .header-actions .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-actions .icon-button svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .app-tabs {
+    top: max(4px, env(safe-area-inset-top));
+    gap: 4px;
+    margin-bottom: 8px;
+    padding: 4px;
+  }
+
+  .tab-button {
+    min-height: 36px;
+    border-radius: 7px;
+    font-size: 0.8rem;
+  }
+
+  #topView:not([hidden]) {
+    display: grid;
+    gap: 8px;
+  }
+
+  #topView .month-toolbar {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    gap: 6px;
+    margin-bottom: 0;
+  }
+
+  #topView .month-toolbar .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  #topView .month-field {
+    gap: 3px;
+  }
+
+  #topView .month-field span,
+  #topView .month-detail-grid span {
+    font-size: 0.62rem;
+  }
+
+  #topView .month-field input {
+    height: 36px;
+    padding-inline: 8px;
+  }
+
+  #topView .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 0;
+  }
+
+  #topView .summary-tile {
+    gap: 3px;
+    min-height: 58px;
+    padding: 8px 10px;
+    box-shadow: 0 8px 18px rgba(28, 37, 35, 0.07);
+  }
+
+  #topView .summary-tile span {
+    font-size: 0.66rem;
+  }
+
+  #topView .summary-tile strong {
+    font-size: 1.12rem;
+  }
+
+  #topView .month-detail-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 0;
+  }
+
+  #topView .month-detail-grid article {
+    gap: 2px;
+    min-height: 48px;
+    padding: 7px 8px;
+  }
+
+  #topView .month-detail-grid strong {
+    font-size: 0.86rem;
+  }
+
+  #topView .top-actions {
+    gap: 7px;
+  }
+
+  #topView .nav-action {
+    min-height: 38px;
+    font-size: 0.82rem;
+    box-shadow: 0 8px 18px rgba(28, 37, 35, 0.07);
+  }
+
   .field-row,
   .field-row.date-grid,
   .field-row.compact,

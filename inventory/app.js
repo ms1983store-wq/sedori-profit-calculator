@@ -3,6 +3,7 @@ const defaultInventoryLoadedKey = "sedori-inventory-ledger:default-inventory-ver
 const defaultInventoryVersion = "management-csv-20260625-v1";
 const defaultFeeRate = 10;
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち", "完了"]);
+const statusOptions = ["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち", "完了"];
 const stockFilterValue = "stock";
 
 const yenFormatter = new Intl.NumberFormat("ja-JP", {
@@ -409,9 +410,10 @@ function isStockAtMonthEnd(item, monthString) {
   const purchaseDate = normalizeDate(item.purchaseDate);
   if (purchaseDate && purchaseDate > monthEndDate) return false;
   if (!purchaseDate && soldStatuses.has(item.status)) return false;
+  if (!soldStatuses.has(item.status)) return true;
 
   const saleDate = normalizeDate(item.saleDate);
-  if (!saleDate) return !soldStatuses.has(item.status);
+  if (!saleDate) return false;
   return saleDate > monthEndDate;
 }
 
@@ -430,8 +432,8 @@ function getFilteredItems() {
       );
     })
     .sort((a, b) => {
-      const left = b.saleDate || b.purchaseDate || "";
-      const right = a.saleDate || a.purchaseDate || "";
+      const left = soldStatuses.has(b.status) ? b.saleDate || b.purchaseDate || "" : b.purchaseDate || "";
+      const right = soldStatuses.has(a.status) ? a.saleDate || a.purchaseDate || "" : a.purchaseDate || "";
       if (left !== right) return left.localeCompare(right);
       return b.updatedAt.localeCompare(a.updatedAt);
     });
@@ -482,7 +484,7 @@ function createRow(item) {
         <span></span>
       </div>
     </td>
-    <td data-label="状態"><span class="status-badge"></span></td>
+    <td data-label="状態"><select class="status-badge status-select" aria-label="状態を変更"></select></td>
     <td class="purchase-price-cell" data-label="仕入れ値"></td>
     <td class="listing-date-cell" data-label="出品日"></td>
     <td class="sale-date-cell" data-label="販売日"></td>
@@ -515,8 +517,17 @@ function createRow(item) {
   row.querySelector(".ledger-no-cell").textContent = item.ledgerNo || "-";
   row.querySelector(".item-cell strong").textContent = item.name;
   row.querySelector(".item-cell span").textContent = [item.market, item.category, item.memo].filter(Boolean).join(" / ");
-  row.querySelector(".status-badge").textContent = item.status;
-  row.querySelector(".status-badge").dataset.status = item.status;
+  const statusSelect = row.querySelector(".status-select");
+  statusSelect.replaceChildren(
+    ...statusOptions.map((status) => {
+      const option = document.createElement("option");
+      option.value = status;
+      option.textContent = status;
+      option.selected = status === item.status;
+      return option;
+    }),
+  );
+  statusSelect.dataset.status = item.status;
   row.querySelector(".purchase-price-cell").textContent = formatYen(item.purchasePrice);
   row.querySelector(".listing-date-cell").textContent = item.listingDate || "-";
   row.querySelector(".sale-date-cell").textContent = item.saleDate || "-";
@@ -527,10 +538,28 @@ function createRow(item) {
   row.querySelector(".profit-cell").classList.toggle("loss-text", hasSalePrice && calc.profit < 0);
   row.querySelector(".margin-cell").textContent = hasSalePrice ? `${percentFormatter.format(calc.margin)}%` : "-";
   row.querySelector(".margin-cell").classList.toggle("loss-text", hasSalePrice && calc.margin < 0);
+  statusSelect.addEventListener("change", () => changeItemStatus(item.id, statusSelect.value));
   row.querySelector(".edit-action").addEventListener("click", () => fillForm(item));
   row.querySelector(".delete-action").addEventListener("click", () => deleteItem(item.id));
 
   return row;
+}
+
+function applyStatusDates(item, previousStatus = "") {
+  if (soldStatuses.has(item.status) && !item.saleDate) {
+    item.saleDate = today();
+  }
+
+  if (!soldStatuses.has(item.status) && soldStatuses.has(previousStatus)) {
+    item.saleDate = "";
+    item.actualFee = null;
+  }
+
+  if (item.status === "出品中" && !item.listingDate) {
+    item.listingDate = today();
+  }
+
+  return item;
 }
 
 function renderFilters() {
@@ -560,15 +589,9 @@ function saveItem(event) {
   });
   if (!item.name) return;
 
-  if (soldStatuses.has(item.status) && !item.saleDate) {
-    item.saleDate = today();
-    fields.saleDate.value = item.saleDate;
-  }
-
-  if (item.status === "出品中" && !item.listingDate) {
-    item.listingDate = today();
-    fields.listingDate.value = item.listingDate;
-  }
+  applyStatusDates(item, existing?.status || "");
+  fields.saleDate.value = item.saleDate;
+  fields.listingDate.value = item.listingDate;
 
   const index = state.items.findIndex((existing) => existing.id === item.id);
   if (index >= 0) {
@@ -580,6 +603,34 @@ function saveItem(event) {
   saveItems();
   render();
   resetForm();
+}
+
+function changeItemStatus(id, status) {
+  const index = state.items.findIndex((candidate) => candidate.id === id);
+  if (index < 0) return;
+
+  const previousStatus = state.items[index].status;
+  const item = applyStatusDates(
+    normalizeItem({
+      ...state.items[index],
+      status: normalizeStatus(status),
+      updatedAt: new Date().toISOString(),
+    }),
+    previousStatus,
+  );
+
+  state.items[index] = item;
+
+  if (fields.id.value === item.id) {
+    fields.status.value = item.status;
+    fields.saleDate.value = item.saleDate;
+    fields.listingDate.value = item.listingDate;
+    updateFormPreview();
+  }
+
+  saveItems();
+  render();
+  showToast(`状態を「${item.status}」に変更しました`);
 }
 
 function deleteItem(id) {
