@@ -2,8 +2,8 @@ const storageKey = "sedori-inventory-ledger:v1";
 const defaultInventoryLoadedKey = "sedori-inventory-ledger:default-inventory-version";
 const defaultInventoryVersion = "management-csv-20260625-v1";
 const defaultFeeRate = 10;
-const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち", "完了"]);
-const statusOptions = ["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち", "完了"];
+const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち"]);
+const statusOptions = ["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち"];
 const stockFilterValue = "stock";
 const cloudApiUrl = "./api/inventory";
 const cloudSyncIntervalMs = 15000;
@@ -249,8 +249,8 @@ function normalizeMarket(value) {
 function normalizeStatus(value) {
   const status = String(value || "").trim();
   if (!status) return "在庫";
-  if (status === "販売済み") return "売却済み";
-  if (["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち", "完了"].includes(status)) {
+  if (status === "販売済み" || status === "完了") return "売却済み";
+  if (["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち"].includes(status)) {
     return status;
   }
   return status;

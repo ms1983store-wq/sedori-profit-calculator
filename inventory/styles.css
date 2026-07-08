@@ -580,14 +580,6 @@ select:focus,
   --status-border: #f472b6;
 }
 
-.filter-chip[data-status="完了"],
-.status-badge[data-status="完了"],
-.status-select[data-status="完了"] {
-  --status-color: #0f766e;
-  --status-bg: #ccfbf1;
-  --status-border: #2dd4bf;
-}
-
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--line);
