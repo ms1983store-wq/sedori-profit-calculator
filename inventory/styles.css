@@ -380,6 +380,10 @@ th,
   grid-template-columns: 0.72fr 1.28fr;
 }
 
+.field-row.item-header-row {
+  grid-template-columns: 0.44fr 1.56fr;
+}
+
 input,
 select {
   width: 100%;
@@ -493,7 +497,12 @@ select:focus,
   gap: 8px;
   overflow-x: auto;
   padding: 14px 0 12px;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.filter-row::-webkit-scrollbar {
+  display: none;
 }
 
 .filter-chip {
@@ -580,7 +589,7 @@ select:focus,
 
 table {
   width: 100%;
-  min-width: 1120px;
+  min-width: 1180px;
   border-collapse: collapse;
   background: #fff;
 }
@@ -639,6 +648,7 @@ tbody tr:last-child td {
 }
 
 .purchase-price-cell,
+.ledger-no-cell,
 .listing-date-cell,
 .sale-date-cell,
 .sale-days-cell,
@@ -787,77 +797,124 @@ tbody tr:last-child td {
 
   tbody {
     display: grid;
-    gap: 12px;
+    gap: 9px;
   }
 
   tbody tr {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    padding: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    padding: 9px;
     border: 1px solid rgba(221, 228, 223, 0.94);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 10px 26px rgba(28, 37, 35, 0.08);
+    box-shadow: 0 8px 20px rgba(28, 37, 35, 0.07);
   }
 
   td {
     display: grid;
-    gap: 4px;
+    gap: 2px;
     align-content: center;
     min-width: 0;
-    min-height: 58px;
-    padding: 8px;
-    border: 1px solid rgba(221, 228, 223, 0.72);
-    border-radius: 8px;
-    background: rgba(248, 250, 249, 0.76);
+    min-height: 34px;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(248, 250, 249, 0.8);
+    font-size: 0.82rem;
+    font-weight: 830;
+    line-height: 1.12;
   }
 
   td::before {
     content: attr(data-label);
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: 0.6rem;
     font-weight: 850;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   tbody tr:last-child td {
-    border-bottom: 1px solid rgba(221, 228, 223, 0.72);
+    border-bottom: 0;
   }
 
   td:last-child {
-    border-bottom: 1px solid rgba(221, 228, 223, 0.72);
+    border-bottom: 0;
   }
 
   td[data-label="商品"] {
     display: block;
+    order: -3;
     grid-column: 1 / -1;
     min-height: 0;
-    padding: 0 0 4px;
+    padding: 0 0 5px;
     border: 0;
     background: transparent;
   }
 
+  td[data-label="No."] {
+    order: -2;
+  }
+
   td[data-label="状態"],
   td[data-label="操作"] {
-    min-height: 44px;
-    padding-block: 6px;
+    min-height: 30px;
+    padding-block: 0;
   }
 
   td[data-label="商品"]::before,
+  td[data-label="状態"]::before,
   td[data-label="操作"]::before {
     display: none;
   }
 
+  td[data-label="状態"] {
+    order: -2;
+    display: flex;
+    align-items: stretch;
+    background: transparent;
+  }
+
   td[data-label="操作"] {
     display: grid;
+    align-content: center;
     justify-content: end;
+    background: transparent;
   }
 
   .item-cell {
+    gap: 2px;
     min-width: 0;
   }
 
+  .item-cell strong {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.98rem;
+    line-height: 1.25;
+  }
+
+  .item-cell span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .status-badge {
+    width: 100%;
+    min-width: 0;
+    min-height: 30px;
+    padding: 2px 7px;
+    font-size: 0.68rem;
+  }
+
   .status-badge,
+  .ledger-no-cell,
   .purchase-price-cell,
   .listing-date-cell,
   .sale-date-cell,
@@ -866,12 +923,18 @@ tbody tr:last-child td {
   .break-even-cell,
   .profit-cell,
   .margin-cell {
-    justify-self: start;
+    justify-self: stretch;
     text-align: left;
+  }
+
+  .row-actions .icon-button.tiny {
+    width: 30px;
+    height: 30px;
   }
 
   .row-actions {
     justify-content: flex-end;
+    gap: 6px;
   }
 }
 

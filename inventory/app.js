@@ -28,6 +28,7 @@ const state = {
 const form = document.querySelector("#itemForm");
 const fields = {
   id: document.querySelector("#itemId"),
+  ledgerNo: document.querySelector("#ledgerNoInput"),
   name: document.querySelector("#nameInput"),
   market: document.querySelector("#marketInput"),
   status: document.querySelector("#statusInput"),
@@ -241,6 +242,15 @@ function normalizeStatus(value) {
   return status;
 }
 
+function normalizeLedgerNo(value) {
+  return String(value || "").trim();
+}
+
+function ledgerNoFromSourceRef(sourceRef) {
+  const match = String(sourceRef || "").match(/管理表[:：\s-]*(.+)$/);
+  return match ? normalizeLedgerNo(match[1]) : "";
+}
+
 function createId() {
   if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
     return globalThis.crypto.randomUUID();
@@ -251,6 +261,7 @@ function createId() {
 function readForm() {
   return {
     id: fields.id.value || createId(),
+    ledgerNo: normalizeLedgerNo(fields.ledgerNo.value),
     name: fields.name.value.trim(),
     market: fields.market.value,
     status: fields.status.value,
@@ -287,6 +298,7 @@ function resetForm(options = {}) {
   const { focus = state.activeView === "entry" } = options;
   form.reset();
   fields.id.value = "";
+  fields.ledgerNo.value = "";
   fields.purchaseDate.value = today();
   fields.feeRate.value = defaultFeeRate;
   output.formTitle.textContent = "商品登録";
@@ -296,6 +308,7 @@ function resetForm(options = {}) {
 
 function fillForm(item) {
   fields.id.value = item.id;
+  fields.ledgerNo.value = item.ledgerNo || "";
   fields.name.value = item.name;
   fields.market.value = normalizeMarket(item.market || "メルカリ");
   fields.status.value = normalizeStatus(item.status || "在庫");
@@ -329,8 +342,14 @@ function loadItems() {
 }
 
 function normalizeItem(item) {
+  const sourceRef = String(item.sourceRef || "").trim();
+  const ledgerNo =
+    normalizeLedgerNo(item.ledgerNo ?? item.ledgerNumber ?? item.no ?? item.number ?? item["No."] ?? item["№"]) ||
+    ledgerNoFromSourceRef(sourceRef);
+
   return {
     id: item.id || createId(),
+    ledgerNo,
     name: item.name || "",
     market: normalizeMarket(item.market || "メルカリ"),
     status: normalizeStatus(item.status || "在庫"),
@@ -345,7 +364,7 @@ function normalizeItem(item) {
     actualFee:
       item.actualFee === null || item.actualFee === undefined || item.actualFee === "" ? null : Number(item.actualFee) || 0,
     category: item.category || "",
-    sourceRef: String(item.sourceRef || "").trim(),
+    sourceRef,
     memo: item.memo || "",
     updatedAt: item.updatedAt || new Date().toISOString(),
   };
@@ -406,7 +425,7 @@ function getFilteredItems() {
     })
     .filter((item) => {
       if (!keyword) return true;
-      return [item.name, item.market, item.category, item.memo, item.sourceRef].some((value) =>
+      return [item.ledgerNo, item.name, item.market, item.category, item.memo, item.sourceRef].some((value) =>
         String(value).toLowerCase().includes(keyword),
       );
     })
@@ -456,6 +475,7 @@ function createRow(item) {
   const row = document.createElement("tr");
 
   row.innerHTML = `
+    <td class="ledger-no-cell" data-label="No."></td>
     <td data-label="商品">
       <div class="item-cell">
         <strong></strong>
@@ -492,6 +512,7 @@ function createRow(item) {
     </td>
   `;
 
+  row.querySelector(".ledger-no-cell").textContent = item.ledgerNo || "-";
   row.querySelector(".item-cell strong").textContent = item.name;
   row.querySelector(".item-cell span").textContent = [item.market, item.category, item.memo].filter(Boolean).join(" / ");
   row.querySelector(".status-badge").textContent = item.status;
@@ -574,6 +595,7 @@ function deleteItem(id) {
 
 function exportCsv() {
   const header = [
+    "No.",
     "商品名",
     "販売先",
     "状態",
@@ -597,6 +619,7 @@ function exportCsv() {
   const rows = state.items.map((item) => {
     const calc = getCalculations(item);
     return [
+      item.ledgerNo,
       item.name,
       item.market,
       item.status,
@@ -701,6 +724,7 @@ function mapManagementSheetRows(rows) {
       const memo = [sourceStore && `仕入先:${sourceStore}`, row[36]].filter(Boolean).join(" / ");
 
       return normalizeItem({
+        ledgerNo: row[0],
         sourceRef: `管理表:${row[0]}`,
         name: row[3],
         market: normalizeMarket(row[11]),
@@ -722,6 +746,7 @@ function mapManagementSheetRows(rows) {
 
 function mapInventoryLedgerRows(rows) {
   const [header = [], ...records] = rows;
+  const ledgerNoColumn = columnIndex(header, ["No.", "No", "№", "古物台帳No", "古物台帳№", "台帳No", "台帳№", "番号"]);
   const nameColumn = columnIndex(header, ["商品名"], 0);
   const marketColumn = columnIndex(header, ["販売先"], 1);
   const statusColumn = columnIndex(header, ["状態"], 2);
@@ -741,6 +766,7 @@ function mapInventoryLedgerRows(rows) {
   return records
     .map((row) =>
       normalizeItem({
+        ledgerNo: ledgerNoColumn >= 0 ? row[ledgerNoColumn] : "",
         name: row[nameColumn],
         market: normalizeMarket(row[marketColumn]),
         status: normalizeStatus(row[statusColumn]),
@@ -763,6 +789,7 @@ function mapInventoryLedgerRows(rows) {
 
 function getItemIdentity(item) {
   if (item.sourceRef) return item.sourceRef;
+  if (item.ledgerNo) return `ledger:${item.ledgerNo}`;
   return [item.name, item.purchaseDate, item.listingDate, item.saleDate, item.purchasePrice, item.salePrice, item.market].join("|");
 }
 

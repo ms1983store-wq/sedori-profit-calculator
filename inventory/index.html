@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=20" />
+    <link rel="stylesheet" href="./styles.css?v=21" />
   </head>
   <body>
     <main class="app-shell">
@@ -149,10 +149,16 @@
 
           <input type="hidden" id="itemId" />
 
-          <label class="field full">
-            <span>商品名</span>
-            <input id="nameInput" type="text" placeholder="例：Nintendo Switch 本体" required />
-          </label>
+          <div class="field-row item-header-row">
+            <label class="field ledger-number-field">
+              <span>No.</span>
+              <input id="ledgerNoInput" type="text" inputmode="numeric" placeholder="古物台帳No." />
+            </label>
+            <label class="field">
+              <span>商品名</span>
+              <input id="nameInput" type="text" placeholder="例：Nintendo Switch 本体" required />
+            </label>
+          </div>
 
           <div class="field-row">
             <label class="field">
@@ -286,6 +292,7 @@
             <table>
               <thead>
                 <tr>
+                  <th>No.</th>
                   <th>商品</th>
                   <th>状態</th>
                   <th>仕入れ値</th>
@@ -327,6 +334,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=2" defer></script>
-    <script src="./app.js?v=19" defer></script>
+    <script src="./app.js?v=21" defer></script>
   </body>
 </html>
