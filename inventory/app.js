@@ -5,6 +5,8 @@ const defaultFeeRate = 10;
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち", "完了"]);
 const statusOptions = ["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち", "完了"];
 const stockFilterValue = "stock";
+const cloudApiUrl = "./api/inventory";
+const cloudSyncIntervalMs = 15000;
 
 const yenFormatter = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -24,6 +26,17 @@ const state = {
   search: "",
   activeView: "top",
   selectedMonth: currentMonth(),
+};
+
+const cloudSync = {
+  available: false,
+  initialized: false,
+  applyingRemote: false,
+  saving: false,
+  needsSave: false,
+  version: 0,
+  pollTimer: null,
+  saveTimer: null,
 };
 
 const form = document.querySelector("#itemForm");
@@ -328,8 +341,15 @@ function fillForm(item) {
   fields.name.focus();
 }
 
-function saveItems() {
+function storeLocalItems() {
   localStorage.setItem(storageKey, JSON.stringify(state.items));
+}
+
+function saveItems(options = {}) {
+  storeLocalItems();
+  if (options.cloud !== false) {
+    queueCloudSave();
+  }
 }
 
 function loadItems() {
@@ -868,6 +888,194 @@ function mergeImportedItems(importedItems) {
   return { added, updated };
 }
 
+function serializeItems(items) {
+  return JSON.stringify(items.map(normalizeItem));
+}
+
+function getMergeKeys(item) {
+  return [`id:${item.id}`, `identity:${getItemIdentity(item)}`].filter((value) => !value.endsWith(":"));
+}
+
+function isNewerItem(item, existing) {
+  const itemTime = Date.parse(item.updatedAt || "");
+  const existingTime = Date.parse(existing.updatedAt || "");
+  if (Number.isFinite(itemTime) && Number.isFinite(existingTime)) return itemTime >= existingTime;
+  if (Number.isFinite(itemTime)) return true;
+  if (Number.isFinite(existingTime)) return false;
+  return true;
+}
+
+function mergeItemCollections(primaryItems, secondaryItems) {
+  const merged = [];
+  const indexByKey = new Map();
+
+  function indexItem(item, index) {
+    getMergeKeys(item).forEach((key) => indexByKey.set(key, index));
+  }
+
+  function addItem(rawItem) {
+    const item = normalizeItem(rawItem);
+    if (!item.name) return;
+    const keys = getMergeKeys(item);
+    const existingIndex = keys.map((key) => indexByKey.get(key)).find((index) => index !== undefined);
+
+    if (existingIndex === undefined) {
+      const index = merged.push(item) - 1;
+      indexItem(item, index);
+      return;
+    }
+
+    const existing = merged[existingIndex];
+    const nextItem = isNewerItem(item, existing) ? { ...existing, ...item, id: existing.id || item.id } : existing;
+    merged[existingIndex] = nextItem;
+    indexItem(nextItem, existingIndex);
+  }
+
+  primaryItems.forEach(addItem);
+  secondaryItems.forEach(addItem);
+  return merged;
+}
+
+function applyCloudItems(items) {
+  cloudSync.applyingRemote = true;
+  state.items = items.map(normalizeItem).filter((item) => item.name);
+  storeLocalItems();
+  state.selectedMonth = getLatestSaleMonth() || state.selectedMonth || currentMonth();
+  render();
+  cloudSync.applyingRemote = false;
+}
+
+async function fetchCloudInventory() {
+  const response = await fetch(cloudApiUrl, {
+    headers: { accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`Cloud inventory is unavailable: ${response.status}`);
+  return response.json();
+}
+
+async function writeCloudInventory(options = {}) {
+  const response = await fetch(cloudApiUrl, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({
+      items: state.items,
+      baseVersion: cloudSync.version,
+      force: options.force === true,
+    }),
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (response.status === 409) return { conflict: true, ...body };
+  if (!response.ok) throw new Error(body.error || `Cloud save failed: ${response.status}`);
+  return body;
+}
+
+function queueCloudSave() {
+  if (!cloudSync.initialized || cloudSync.applyingRemote) return;
+  clearTimeout(cloudSync.saveTimer);
+  cloudSync.saveTimer = setTimeout(() => {
+    pushCloudInventory().catch(() => {});
+  }, 500);
+}
+
+async function pushCloudInventory(options = {}) {
+  if (!cloudSync.initialized) return;
+  if (cloudSync.saving) {
+    cloudSync.needsSave = true;
+    return;
+  }
+
+  cloudSync.saving = true;
+  try {
+    const result = await writeCloudInventory(options);
+
+    if (result.conflict) {
+      cloudSync.version = Number(result.version) || cloudSync.version;
+      const remoteItems = Array.isArray(result.items) ? result.items : [];
+      const merged = mergeItemCollections(remoteItems, state.items);
+      applyCloudItems(merged);
+      const retry = await writeCloudInventory({ force: true });
+      cloudSync.version = Number(retry.version) || cloudSync.version;
+      showToast("クラウドの在庫とマージしました");
+      return;
+    }
+
+    cloudSync.version = Number(result.version) || cloudSync.version;
+  } catch {
+    cloudSync.available = false;
+  } finally {
+    cloudSync.saving = false;
+    if (cloudSync.needsSave) {
+      cloudSync.needsSave = false;
+      queueCloudSave();
+    }
+  }
+}
+
+async function pullCloudInventory(options = {}) {
+  if (!cloudSync.initialized || cloudSync.saving) return;
+
+  try {
+    const remote = await fetchCloudInventory();
+    const remoteVersion = Number(remote.version) || 0;
+    if (remoteVersion <= cloudSync.version) return;
+
+    const remoteItems = Array.isArray(remote.items) ? remote.items : [];
+    const merged = mergeItemCollections(remoteItems, state.items);
+    const remoteJson = serializeItems(remoteItems);
+    const mergedJson = serializeItems(merged);
+    const localJson = serializeItems(state.items);
+
+    cloudSync.version = remoteVersion;
+    if (mergedJson !== localJson) {
+      applyCloudItems(merged);
+      if (!options.silent) showToast("クラウドから更新しました");
+    }
+
+    if (mergedJson !== remoteJson) {
+      queueCloudSave();
+    }
+  } catch {
+    cloudSync.available = false;
+  }
+}
+
+function startCloudPolling() {
+  clearInterval(cloudSync.pollTimer);
+  cloudSync.pollTimer = setInterval(() => {
+    pullCloudInventory({ silent: true }).catch(() => {});
+  }, cloudSyncIntervalMs);
+}
+
+async function initializeCloudSync() {
+  try {
+    const remote = await fetchCloudInventory();
+    cloudSync.available = true;
+    cloudSync.initialized = true;
+    cloudSync.version = Number(remote.version) || 0;
+
+    const remoteItems = Array.isArray(remote.items) ? remote.items : [];
+    if (remoteItems.length) {
+      const merged = mergeItemCollections(remoteItems, state.items);
+      const shouldUpload = serializeItems(merged) !== serializeItems(remoteItems);
+      applyCloudItems(merged);
+      if (shouldUpload) {
+        await pushCloudInventory({ force: true });
+      }
+    } else if (state.items.length) {
+      await pushCloudInventory({ force: true });
+      showToast("端末内の在庫をクラウドへ同期しました");
+    }
+
+    startCloudPolling();
+  } catch {
+    cloudSync.available = false;
+    cloudSync.initialized = false;
+  }
+}
+
 let toastTimer;
 function showToast(message) {
   if (!controls.toast) {
@@ -1029,8 +1237,19 @@ window.addEventListener("hashchange", () => {
   switchView(getInitialView(), { updateHash: false });
 });
 
+window.addEventListener("focus", () => {
+  pullCloudInventory({ silent: true }).catch(() => {});
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    pullCloudInventory({ silent: true }).catch(() => {});
+  }
+});
+
 loadItems();
 state.selectedMonth = getLatestSaleMonth() || currentMonth();
 switchView(getInitialView(), { updateHash: false, scroll: false });
 resetForm();
 render();
+initializeCloudSync();

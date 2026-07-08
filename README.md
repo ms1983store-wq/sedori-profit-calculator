@@ -26,3 +26,15 @@
 
 在庫管理アプリは `inventory/` フォルダに分けて配置しています。保存データとPWAキャッシュは粗利計算アプリと別のキーを使います。
 在庫管理アプリには管理表CSV由来の初期在庫データを同梱しているため、新しい端末で開いても在庫数が表示されます。
+
+## Cloudflare同期版
+
+`functions/inventory/api/inventory.js` に Cloudflare Pages Functions 用の同期APIを追加しています。
+Cloudflare Pages + D1 + Access を設定すると、在庫管理アプリは `/inventory/api/inventory` を使ってPC/スマホ間で同期します。
+
+- D1 binding名: `SEDORI_DB`
+- 任意の許可メール環境変数: `INVENTORY_OWNER_EMAIL`
+- D1スキーマ: `cloudflare/schema.sql`
+- 設定手順: `cloudflare/README.md`
+
+Cloudflare APIが使えない環境では、これまで通り端末内保存で動作します。

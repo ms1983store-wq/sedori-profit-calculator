@@ -1,0 +1,8 @@
+name = "sedori-profit-calculator"
+compatibility_date = "2026-07-08"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "SEDORI_DB"
+database_name = "sedori-inventory"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
