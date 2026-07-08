@@ -23,6 +23,7 @@
 
 - 粗利計算アプリ: `/sedori-profit-calculator/`
 - 在庫管理アプリ: `/sedori-profit-calculator/inventory/`
+- 同期版 在庫管理アプリ: `https://sedori-profit-calculator.pages.dev/inventory/`
 
 在庫管理アプリは `inventory/` フォルダに分けて配置しています。保存データとPWAキャッシュは粗利計算アプリと別のキーを使います。
 在庫管理アプリには管理表CSV由来の初期在庫データを同梱しているため、新しい端末で開いても在庫数が表示されます。
