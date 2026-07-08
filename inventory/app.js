@@ -1,6 +1,6 @@
 const storageKey = "sedori-inventory-ledger:v1";
 const defaultInventoryLoadedKey = "sedori-inventory-ledger:default-inventory-version";
-const defaultInventoryVersion = "management-csv-20260625-v1";
+const defaultInventoryVersion = "management-csv-20260708-v1";
 const defaultFeeRate = 10;
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち"]);
 const statusOptions = ["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち"];
@@ -395,15 +395,40 @@ function getDefaultInventoryItems() {
   return Array.isArray(globalThis.SEDORI_DEFAULT_INVENTORY) ? globalThis.SEDORI_DEFAULT_INVENTORY : [];
 }
 
+function isGeneratedDefaultItem(item) {
+  return (
+    String(item.id || "").startsWith("default-management-") &&
+    String(item.sourceRef || "").startsWith("管理表:") &&
+    /^\d{4}-\d{2}-\d{2}T00:00:00\.000Z$/.test(String(item.updatedAt || ""))
+  );
+}
+
 function seedDefaultInventory() {
   const defaultItems = getDefaultInventoryItems().map(normalizeItem).filter((item) => item.name);
   if (!defaultItems.length) return;
   if (localStorage.getItem(defaultInventoryLoadedKey) === defaultInventoryVersion) return;
 
-  const existingIdentities = new Set(state.items.map(getItemIdentity));
-  const additions = defaultItems.filter((item) => !existingIdentities.has(getItemIdentity(item)));
+  const indexByIdentity = new Map(state.items.map((item, index) => [getItemIdentity(item), index]));
+  const additions = [];
+  let updated = 0;
 
-  if (additions.length) {
+  defaultItems.forEach((item) => {
+    const identity = getItemIdentity(item);
+    const existingIndex = indexByIdentity.get(identity);
+
+    if (existingIndex === undefined) {
+      additions.push(item);
+      return;
+    }
+
+    const existing = state.items[existingIndex];
+    if (isGeneratedDefaultItem(existing) && existing.updatedAt !== item.updatedAt) {
+      state.items[existingIndex] = { ...item, id: existing.id };
+      updated += 1;
+    }
+  });
+
+  if (additions.length || updated) {
     state.items = [...additions, ...state.items];
     saveItems();
   }

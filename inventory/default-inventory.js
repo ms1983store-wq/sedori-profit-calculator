@@ -1,5 +1,6 @@
 // Generated from the management CSV supplied for the inventory app.
 // This data is public because it is bundled with the static inventory app.
+// Source: management_table_raw.tsv exported 2026-07-08 (130 rows).
 globalThis.SEDORI_DEFAULT_INVENTORY = [
   {
     "id": "default-management-1",
@@ -17,7 +18,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家電 / 家電",
     "sourceRef": "管理表:1",
     "memo": "仕入先:ss_セカスト-栃木店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-2",
@@ -35,7 +36,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:2",
     "memo": "仕入先:ss_セカスト-インパ宇都宮店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-3",
@@ -53,7 +54,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家電 / 家電",
     "sourceRef": "管理表:3",
     "memo": "仕入先:of_オフハウス-加須店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-4",
@@ -71,7 +72,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:4",
     "memo": "仕入先:ss_セカスト-栃木店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-5",
@@ -89,7 +90,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:5",
     "memo": "仕入先:やふ_ヤフーオークション",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-6",
@@ -107,7 +108,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "化粧品 / 化粧品",
     "sourceRef": "管理表:6",
     "memo": "仕入先:_ワットマン-川崎梶ヶ谷店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-7",
@@ -125,7 +126,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "スポーツ用品 / スポーツ用品",
     "sourceRef": "管理表:7",
     "memo": "仕入先:bo_ブックオフスーパーバザー-409号川崎港町店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-8",
@@ -143,7 +144,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:8",
     "memo": "仕入先:bo_ブックオフスーパーバザー-川崎アモーズ店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-9",
@@ -161,7 +162,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:9",
     "memo": "仕入先:hd_ハードオフ-コーナン川崎小田栄モール店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-10",
@@ -179,7 +180,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:10",
     "memo": "仕入先:hd_ハードオフ-コーナン川崎小田栄モール店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-11",
@@ -197,7 +198,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ベビー用品 / ベビー用品",
     "sourceRef": "管理表:11",
     "memo": "仕入先:bo_ブックオフスーパーバザー-409号川崎港町店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-12",
@@ -215,7 +216,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "フィットネス用品 / フィットネス用品",
     "sourceRef": "管理表:12",
     "memo": "仕入先:bo_ブックオフスーパーバザー-409号川崎港町店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-13",
@@ -233,7 +234,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家電 / 家電",
     "sourceRef": "管理表:13",
     "memo": "仕入先:of_オフハウス-123号益子店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-14",
@@ -251,7 +252,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:14",
     "memo": "仕入先:hd_ハードオフ-真岡店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-15",
@@ -269,7 +270,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:15",
     "memo": "仕入先:of_オフハウス-館林店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-16",
@@ -287,7 +288,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:16",
     "memo": "仕入先:of_オフハウス-加須店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-17",
@@ -305,7 +306,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:17",
     "memo": "仕入先:of_オフハウス-宇都宮環状鶴田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-18",
@@ -323,7 +324,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家電 / 家電",
     "sourceRef": "管理表:18",
     "memo": "仕入先:ss_セカスト-宇都宮戸祭店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-19",
@@ -341,7 +342,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:19",
     "memo": "仕入先:hd_ハードオフ-小山店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-20",
@@ -359,7 +360,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家電 / 家電",
     "sourceRef": "管理表:20",
     "memo": "仕入先:ss_セカスト-宇都宮戸祭店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-21",
@@ -377,7 +378,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:21",
     "memo": "仕入先:bo_ブックオフスーパーバザー-草加セーモンプラザ店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-22",
@@ -395,7 +396,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "アパレル / アパレル",
     "sourceRef": "管理表:22",
     "memo": "仕入先:bo_ブックオフスーパーバザー-草加セーモンプラザ店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-23",
@@ -413,7 +414,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:23",
     "memo": "仕入先:hd_ハードオフ-越谷南店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-24",
@@ -431,7 +432,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:24",
     "memo": "仕入先:tr_トレファク-北越谷店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-25",
@@ -449,7 +450,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "フィットネス用品 / フィットネス用品",
     "sourceRef": "管理表:25",
     "memo": "仕入先:bo_ブックオフスーパーバザー-407号太田飯塚店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-26",
@@ -467,7 +468,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "インテリア / インテリア",
     "sourceRef": "管理表:26",
     "memo": "仕入先:tr_トレファク-太田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-27",
@@ -485,7 +486,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:27",
     "memo": "仕入先:tr_トレファク-太田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-28",
@@ -503,7 +504,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "アウトドア / アウトドア",
     "sourceRef": "管理表:28",
     "memo": "仕入先:of_オフハウス-館林店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-29",
@@ -521,7 +522,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:29",
     "memo": "仕入先:tr_トレファク-館林店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-30",
@@ -539,7 +540,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ベビー用品 / ベビー用品",
     "sourceRef": "管理表:30",
     "memo": "仕入先:ss_セカスト-宇都宮戸祭店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-31",
@@ -557,7 +558,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "アウトドア / アウトドア",
     "sourceRef": "管理表:31",
     "memo": "仕入先:ss_セカスト-宇都宮戸祭店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-32",
@@ -575,7 +576,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:32",
     "memo": "仕入先:ss_セカスト-宇都宮戸祭店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-33",
@@ -593,7 +594,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:33",
     "memo": "仕入先:hd_ハードオフ-宇都宮東店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-34",
@@ -611,7 +612,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:34",
     "memo": "仕入先:tr_トレファク-宇都宮インターパーク店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-35",
@@ -629,7 +630,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:35",
     "memo": "仕入先:tr_トレファク-宇都宮インターパーク店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-36",
@@ -647,7 +648,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:36",
     "memo": "仕入先:_虹風船",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-37",
@@ -665,7 +666,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:37",
     "memo": "仕入先:ss_セカスト-足利福居店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-38",
@@ -683,7 +684,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "スポーツ用品 / スポーツ用品",
     "sourceRef": "管理表:38",
     "memo": "仕入先:of_オフハウス-佐野店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-39",
@@ -701,7 +702,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:39",
     "memo": "仕入先:hd_ハードオフ-佐野店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-40",
@@ -719,7 +720,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:40",
     "memo": "仕入先:やふ_ヤフーオークション",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-41",
@@ -737,7 +738,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:41",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-42",
@@ -755,7 +756,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:42",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-43",
@@ -773,7 +774,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:43",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-44",
@@ -791,7 +792,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:44",
     "memo": "仕入先:じも_ジモティー",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-45",
@@ -809,7 +810,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:45",
     "memo": "仕入先:じも_ジモティー",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-46",
@@ -827,7 +828,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:46",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-47",
@@ -845,7 +846,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:47",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-48",
@@ -863,7 +864,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:48",
     "memo": "仕入先:らく_ラクマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-49",
@@ -881,7 +882,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:49",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-50",
@@ -899,7 +900,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:50",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-51",
@@ -917,7 +918,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:51",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-52",
@@ -935,7 +936,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:52",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-53",
@@ -953,7 +954,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:53",
     "memo": "仕入先:tr_トレファク-春日部店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-54",
@@ -971,7 +972,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "スポーツ用品 / スポーツ用品",
     "sourceRef": "管理表:54",
     "memo": "仕入先:hd_ハードオフ-杉戸店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-55",
@@ -989,7 +990,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "スポーツ用品 / スポーツ用品",
     "sourceRef": "管理表:55",
     "memo": "仕入先:hd_ハードオフ-杉戸店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-56",
@@ -1007,7 +1008,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:56",
     "memo": "仕入先:ss_セカスト-幸手店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-57",
@@ -1025,7 +1026,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:57",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-58",
@@ -1043,25 +1044,25 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:58",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-59",
     "name": "Canon IXY DIGITAL 70 キャノン イクシー コンデジ オールド",
-    "market": "その他",
+    "market": "メルカリ",
     "status": "在庫",
     "purchaseDate": "2026-03-01",
     "saleDate": "",
     "purchasePrice": 13500,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 16780,
+    "shipping": 160,
     "packing": 580,
     "feeRate": 10,
     "actualFee": null,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:59",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-60",
@@ -1079,7 +1080,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:60",
     "memo": "仕入先:らく_ラクマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-61",
@@ -1097,7 +1098,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:61",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-62",
@@ -1115,7 +1116,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:62",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-63",
@@ -1133,7 +1134,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "フィットネス用品 / フィットネス用品",
     "sourceRef": "管理表:63",
     "memo": "仕入先:じも_ジモティー",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-64",
@@ -1151,7 +1152,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:64",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-65",
@@ -1169,25 +1170,25 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "家具 / 家具",
     "sourceRef": "管理表:65",
     "memo": "仕入先:of_オフハウス-宇都宮環状鶴田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-66",
     "name": "Canon IXY DIGITAL 10 コンデジ オールド",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-03-20",
-    "saleDate": "",
+    "saleDate": "2026-06-12",
     "purchasePrice": 25000,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 26980,
+    "shipping": 150,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 2698,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:66",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-67",
@@ -1205,7 +1206,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:67",
     "memo": "仕入先:やふ_ヤフーオークション",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-68",
@@ -1223,7 +1224,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "音響機器 / 音響機器",
     "sourceRef": "管理表:68",
     "memo": "仕入先:tr_トレファク-トナリエ宇都宮店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-69",
@@ -1241,7 +1242,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "インテリア / インテリア",
     "sourceRef": "管理表:69",
     "memo": "仕入先:未選択",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-70",
@@ -1259,7 +1260,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:70",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-71",
@@ -1277,25 +1278,25 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:71",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-72",
     "name": "Canon IXY 600F ブラック 付属品完備 デジタルカメラ キャノン",
-    "market": "その他",
-    "status": "在庫",
+    "market": "Yahoo!フリマ",
+    "status": "売却済み",
     "purchaseDate": "2026-04-14",
-    "saleDate": "",
+    "saleDate": "2026-06-27",
     "purchasePrice": 18000,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 24980,
+    "shipping": 748,
     "packing": 0,
-    "feeRate": 10,
-    "actualFee": null,
+    "feeRate": 5,
+    "actualFee": 1249,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:72",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-73",
@@ -1313,7 +1314,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:73",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-74",
@@ -1331,7 +1332,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:74",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-75",
@@ -1349,25 +1350,25 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:75",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-76",
     "name": "Canon IXY DIGITAL 70 キャノン イクシー コンデジ オールド",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-01",
-    "saleDate": "",
+    "saleDate": "2026-06-12",
     "purchasePrice": 15000,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 17980,
+    "shipping": 150,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 1798,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:76",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-77",
@@ -1385,25 +1386,25 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ベビー用品 / ベビー用品",
     "sourceRef": "管理表:77",
     "memo": "仕入先:ss_セカスト-小山喜沢店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-78",
     "name": "美品 Canon IXY 3 キャノン イクシー ブルー フルHD",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-09",
-    "saleDate": "",
+    "saleDate": "2026-06-14",
     "purchasePrice": 14220,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 23000,
+    "shipping": 150,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 2300,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:78",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-79",
@@ -1421,7 +1422,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:79",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-80",
@@ -1439,7 +1440,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:80",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-81",
@@ -1457,7 +1458,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:81",
     "memo": "仕入先:hd_ハードオフ-宇都宮環状鶴田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-82",
@@ -1475,25 +1476,25 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:82",
     "memo": "仕入先:hd_ハードオフ-宇都宮環状鶴田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-83",
     "name": "Joie ISOFIX ジョイー アイベース ジュバ チャイルドシート ベビー",
-    "market": "その他",
+    "market": "メルカリ",
     "status": "在庫",
     "purchaseDate": "2026-05-10",
     "saleDate": "",
     "purchasePrice": 3190,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 9980,
+    "shipping": 1450,
     "packing": 0,
     "feeRate": 10,
     "actualFee": null,
     "category": "ベビー用品 / ベビー用品",
     "sourceRef": "管理表:83",
     "memo": "仕入先:ss_セカスト-宇都宮戸祭店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-84",
@@ -1511,7 +1512,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "フィットネス用品 / フィットネス用品",
     "sourceRef": "管理表:84",
     "memo": "仕入先:of_オフハウス-ジャンク館（石橋）",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-85",
@@ -1529,7 +1530,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:85",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-86",
@@ -1547,7 +1548,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:86",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-87",
@@ -1565,7 +1566,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:87",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-88",
@@ -1583,7 +1584,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:88",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-89",
@@ -1601,7 +1602,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:89",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-90",
@@ -1619,7 +1620,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:90",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-91",
@@ -1637,7 +1638,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:91",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-92",
@@ -1655,25 +1656,25 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:92",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-93",
     "name": "ニンテンドッグス チワワ＆フレンズ DS ソフト",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-09",
-    "saleDate": "",
+    "saleDate": "2026-06-29",
     "purchasePrice": 0,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 399,
+    "shipping": 160,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 39,
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:93",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-94",
@@ -1691,25 +1692,25 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:94",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-95",
     "name": "100%パスカル先生 完璧ペイントボンバーズ 3DS",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-09",
-    "saleDate": "",
+    "saleDate": "2026-06-12",
     "purchasePrice": 0,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 399,
+    "shipping": 150,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 39,
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:95",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-96",
@@ -1727,7 +1728,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:96",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-97",
@@ -1745,7 +1746,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:97",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-98",
@@ -1763,7 +1764,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:98",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-99",
@@ -1781,7 +1782,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:99",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-100",
@@ -1799,7 +1800,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:100",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-101",
@@ -1817,7 +1818,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:101",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-102",
@@ -1835,7 +1836,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:102",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-103",
@@ -1853,61 +1854,61 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:103",
     "memo": "仕入先:める_メルカリ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-104",
     "name": "Canon IXY 220F シルバー イクシー キャノン ジャンク",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-26",
-    "saleDate": "",
+    "saleDate": "2026-07-03",
     "purchasePrice": 9500,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 13380,
+    "shipping": 160,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 1338,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:104",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-105",
     "name": "5.30ヤフマixydigital700",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-30",
-    "saleDate": "",
+    "saleDate": "2026-06-24",
     "purchasePrice": 14220,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 22780,
+    "shipping": 455,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 2278,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:105",
     "memo": "仕入先:やふ_ヤフーオークション",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-106",
     "name": "美品 Canon IXY 220F ピンク キャノン イクシー コンデジ",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-30",
-    "saleDate": "",
+    "saleDate": "2026-06-19",
     "purchasePrice": 24500,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 32980,
+    "shipping": 160,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 3298,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:106",
     "memo": "仕入先:らく_ラクマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-107",
@@ -1925,61 +1926,61 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:107",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-108",
     "name": "カシオ EXILIM EX-Z800 ピンク コンデジ エクシリム ジャンク",
-    "market": "その他",
-    "status": "在庫",
+    "market": "Yahoo!フリマ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-30",
-    "saleDate": "",
+    "saleDate": "2026-06-11",
     "purchasePrice": 10000,
-    "salePrice": 0,
-    "shipping": 0,
-    "packing": 1020,
-    "feeRate": 10,
-    "actualFee": null,
+    "salePrice": 12980,
+    "shipping": 160,
+    "packing": 0,
+    "feeRate": 5,
+    "actualFee": 649,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:108",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-109",
     "name": "CASIO EXILIM EX-Z400 ピンク デジカメ エクシリム カシオ",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-05-31",
-    "saleDate": "",
+    "saleDate": "2026-06-26",
     "purchasePrice": 13500,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 22780,
+    "shipping": 160,
     "packing": 1399,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 2278,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:109",
     "memo": "仕入先:やふ_ヤフーオークション",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-110",
     "name": "【箱・SDカード付き】Canon IXY 630 Wi-Fi搭載 スマホ転送",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-06-03",
-    "saleDate": "",
+    "saleDate": "2026-06-23",
     "purchasePrice": 21620,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 32280,
+    "shipping": 455,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 3228,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:110",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-111",
@@ -1997,7 +1998,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:111",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-112",
@@ -2015,7 +2016,7 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:112",
     "memo": "仕入先:やふ_ヤフーフリマ",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-113",
@@ -2033,79 +2034,79 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "フィットネス用品 / フィットネス用品",
     "sourceRef": "管理表:113",
     "memo": "仕入先:of_オフハウ宇都宮戸祭店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-114",
     "name": "LPN ストレッチポール ネイビー Stretch Pole EX",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-06-13",
-    "saleDate": "",
+    "saleDate": "2026-06-15",
     "purchasePrice": 330,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 7550,
+    "shipping": 750,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 755,
     "category": "フィットネス用品 / フィットネス用品",
     "sourceRef": "管理表:114",
     "memo": "仕入先:tr_トレファク-宇都宮環状駒生店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-115",
     "name": "CENTRAL SPORTS ストレッチポール ネイビー 筋膜リリース",
     "market": "メルカリ",
-    "status": "在庫",
+    "status": "売却済み",
     "purchaseDate": "2026-06-14",
-    "saleDate": "",
+    "saleDate": "2026-06-15",
     "purchasePrice": 0,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 3980,
+    "shipping": 750,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 398,
     "category": "フィットネス用品 / フィットネス用品",
     "sourceRef": "管理表:115",
     "memo": "仕入先:tr_トレファク-宇都宮インターパーク店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-116",
     "name": "MINOURA MOZ-Roller 3本ローラー 自転車トレーナー 室内練習",
-    "market": "その他",
+    "market": "メルカリ",
     "status": "在庫",
     "purchaseDate": "2026-06-13",
     "saleDate": "",
     "purchasePrice": 7500,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 11980,
+    "shipping": 1200,
     "packing": 0,
     "feeRate": 10,
     "actualFee": null,
     "category": "スポーツ用品 / スポーツ用品",
     "sourceRef": "管理表:116",
     "memo": "仕入先:of_オフハウス-ジャンク館（石橋）",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-117",
     "name": "【IPS液晶】Newニンテンドー3DS LL メタリックブルー 充電器付 動作品",
-    "market": "その他",
-    "status": "在庫",
+    "market": "Yahoo!フリマ",
+    "status": "売却済み",
     "purchaseDate": "2026-06-13",
-    "saleDate": "",
+    "saleDate": "2026-06-15",
     "purchasePrice": 20000,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 24000,
+    "shipping": 489,
     "packing": 0,
-    "feeRate": 10,
-    "actualFee": null,
+    "feeRate": 5,
+    "actualFee": 1200,
     "category": "ゲーム / ゲーム",
     "sourceRef": "管理表:117",
     "memo": "仕入先:hd_ハードオフ-4号栃木石橋店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-118",
@@ -2123,42 +2124,222 @@ globalThis.SEDORI_DEFAULT_INVENTORY = [
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:118",
     "memo": "仕入先:hd_ハードオフ-宇都宮西川田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-119",
     "name": "SONY Cyber-shot DSC-WX220 ブラック サイバーショット",
-    "market": "その他",
-    "status": "在庫",
+    "market": "メルカリ",
+    "status": "売却済み",
     "purchaseDate": "2026-06-13",
-    "saleDate": "",
+    "saleDate": "2026-06-22",
     "purchasePrice": 11000,
-    "salePrice": 0,
-    "shipping": 0,
+    "salePrice": 14900,
+    "shipping": 450,
     "packing": 0,
     "feeRate": 10,
-    "actualFee": null,
+    "actualFee": 1490,
     "category": "カメラ / カメラ",
     "sourceRef": "管理表:119",
     "memo": "仕入先:hd_ハードオフ-宇都宮環状鶴田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   },
   {
     "id": "default-management-120",
     "name": "SONY DCR-PC350 MiniDVデジタルビデオカメラ 付属品多数",
+    "market": "メルカリ",
+    "status": "売却済み",
+    "purchaseDate": "2026-06-13",
+    "saleDate": "2026-06-21",
+    "purchasePrice": 3300,
+    "salePrice": 8880,
+    "shipping": 750,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": 888,
+    "category": "カメラ / カメラ",
+    "sourceRef": "管理表:120",
+    "memo": "仕入先:hd_ハードオフ-宇都宮環状鶴田店",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-121",
+    "name": "Canon IXY 200F フルセット 動作確認済 SDカード付 ブラウン",
     "market": "その他",
     "status": "在庫",
-    "purchaseDate": "2026-06-13",
+    "purchaseDate": "2026-06-20",
     "saleDate": "",
-    "purchasePrice": 3300,
+    "purchasePrice": 15000,
     "salePrice": 0,
     "shipping": 0,
     "packing": 0,
     "feeRate": 10,
     "actualFee": null,
     "category": "カメラ / カメラ",
-    "sourceRef": "管理表:120",
+    "sourceRef": "管理表:121",
+    "memo": "仕入先:やふ_ヤフーフリマ",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-122",
+    "name": "Canon PowerShot A4000 IS シルバー パワーショット",
+    "market": "その他",
+    "status": "在庫",
+    "purchaseDate": "2026-06-24",
+    "saleDate": "",
+    "purchasePrice": 14500,
+    "salePrice": 0,
+    "shipping": 0,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": null,
+    "category": "カメラ / カメラ",
+    "sourceRef": "管理表:122",
+    "memo": "仕入先:やふ_ヤフーフリマ",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-123",
+    "name": "Canon IXY 430F Wi-Fi 元箱 動作品 付属品多数 SDカード付",
+    "market": "その他",
+    "status": "在庫",
+    "purchaseDate": "2026-06-27",
+    "saleDate": "",
+    "purchasePrice": 20660,
+    "salePrice": 0,
+    "shipping": 0,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": null,
+    "category": "カメラ / カメラ",
+    "sourceRef": "管理表:123",
+    "memo": "仕入先:やふ_ヤフーフリマ",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-124",
+    "name": "Canon IXY DIGITAL 210 IS 動作品 SDカード付き",
+    "market": "その他",
+    "status": "在庫",
+    "purchaseDate": "2026-06-27",
+    "saleDate": "",
+    "purchasePrice": 14500,
+    "salePrice": 0,
+    "shipping": 0,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": null,
+    "category": "カメラ / カメラ",
+    "sourceRef": "管理表:124",
+    "memo": "仕入先:やふ_ヤフーフリマ",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-125",
+    "name": "JOOMO ヘアリムーバルスプレー 100ml 2本セット ①",
+    "market": "その他",
+    "status": "在庫",
+    "purchaseDate": "2026-07-04",
+    "saleDate": "",
+    "purchasePrice": 440,
+    "salePrice": 0,
+    "shipping": 0,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": null,
+    "category": "化粧品 / 化粧品",
+    "sourceRef": "管理表:125",
+    "memo": "仕入先:ss_セカスト-北本中山道店",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-126",
+    "name": "JOOMO ヘアリムーバルスプレー 100ml 2本セット②",
+    "market": "その他",
+    "status": "在庫",
+    "purchaseDate": "2026-07-04",
+    "saleDate": "",
+    "purchasePrice": 440,
+    "salePrice": 0,
+    "shipping": 0,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": null,
+    "category": "化粧品 / 化粧品",
+    "sourceRef": "管理表:126",
+    "memo": "仕入先:ss_セカスト-北本中山道店",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-127",
+    "name": "THRIVE PREMIUM スライヴ ライフアップスマート マッサージャー MD-082",
+    "market": "Yahoo!フリマ",
+    "status": "在庫",
+    "purchaseDate": "2026-07-04",
+    "saleDate": "",
+    "purchasePrice": 4400,
+    "salePrice": 14980,
+    "shipping": 1200,
+    "packing": 0,
+    "feeRate": 5,
+    "actualFee": null,
+    "category": "フィットネス用品 / フィットネス用品",
+    "sourceRef": "管理表:127",
+    "memo": "仕入先:hd_ハードオフ-北本店",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-128",
+    "name": "ミズノプロ CRBN2 ソフトボール3号用バット 86cm",
+    "market": "その他",
+    "status": "在庫",
+    "purchaseDate": "2026-07-04",
+    "saleDate": "",
+    "purchasePrice": 13200,
+    "salePrice": 0,
+    "shipping": 0,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": null,
+    "category": "スポーツ用品 / スポーツ用品",
+    "sourceRef": "管理表:128",
+    "memo": "仕入先:bo_ブックオフスーパーバザー-PAPA上尾店",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-129",
+    "name": "美品✨NIKON COOLPIX A10 単3電池 クールピクス CCDセンサー",
+    "market": "その他",
+    "status": "在庫",
+    "purchaseDate": "2026-07-05",
+    "saleDate": "",
+    "purchasePrice": 6600,
+    "salePrice": 0,
+    "shipping": 0,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": null,
+    "category": "カメラ / カメラ",
+    "sourceRef": "管理表:129",
     "memo": "仕入先:hd_ハードオフ-宇都宮環状鶴田店",
-    "updatedAt": "2026-06-25T00:00:00.000Z"
+    "updatedAt": "2026-07-08T00:00:00.000Z"
+  },
+  {
+    "id": "default-management-130",
+    "name": "飛騨家具 Shirakawa S-445 ダイニングチェア 2脚 シラカワ",
+    "market": "その他",
+    "status": "在庫",
+    "purchaseDate": "2026-07-05",
+    "saleDate": "",
+    "purchasePrice": 6600,
+    "salePrice": 0,
+    "shipping": 0,
+    "packing": 0,
+    "feeRate": 10,
+    "actualFee": null,
+    "category": "家具 / 家具",
+    "sourceRef": "管理表:130",
+    "memo": "仕入先:tr_トレファク-宇都宮環状駒生店",
+    "updatedAt": "2026-07-08T00:00:00.000Z"
   }
 ];
