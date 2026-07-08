@@ -32,9 +32,10 @@ function getAllowedEmails(env) {
 
 function getUserEmail(request, env) {
   const accessEmail = normalizeEmail(request.headers.get("cf-access-authenticated-user-email"));
+  const accessJwt = String(request.headers.get("cf-access-jwt-assertion") || "").trim();
   const devEmail =
     env.ALLOW_DEV_USER_HEADER === "true" ? normalizeEmail(request.headers.get("x-inventory-user-email")) : "";
-  const email = accessEmail || devEmail;
+  const email = devEmail || (accessEmail && accessJwt ? accessEmail : "");
   if (!email) return { error: jsonResponse({ error: "Cloudflare Access login is required." }, 401) };
 
   const allowedEmails = getAllowedEmails(env);
