@@ -2,6 +2,7 @@ const storageKey = "sedori-inventory-ledger:v1";
 const defaultInventoryLoadedKey = "sedori-inventory-ledger:default-inventory-version";
 const defaultInventoryVersion = "management-csv-20260708-v1";
 const defaultFeeRate = 10;
+const feeRateOptions = [10, 5];
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち"]);
 const statusOptions = ["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち"];
 const stockFilterValue = "stock";
@@ -105,6 +106,13 @@ function parseRate(value) {
   const rate = Number.parseFloat(value);
   if (!Number.isFinite(rate)) return defaultFeeRate;
   return Math.min(Math.max(rate, 0), 80);
+}
+
+function normalizeFeeRateChoice(value) {
+  const rate = parseRate(value);
+  return feeRateOptions.reduce((closest, option) =>
+    Math.abs(option - rate) < Math.abs(closest - rate) ? option : closest,
+  );
 }
 
 function formatInput(value) {
@@ -286,7 +294,7 @@ function readForm() {
     salePrice: parseMoney(fields.salePrice.value),
     shipping: parseMoney(fields.shipping.value),
     packing: parseMoney(fields.packing.value),
-    feeRate: parseRate(fields.feeRate.value),
+    feeRate: normalizeFeeRateChoice(fields.feeRate.value),
     memo: fields.memo.value.trim(),
     updatedAt: new Date().toISOString(),
   };
@@ -333,7 +341,7 @@ function fillForm(item) {
   fields.salePrice.value = formatInput(item.salePrice);
   fields.shipping.value = formatInput(item.shipping);
   fields.packing.value = formatInput(item.packing);
-  fields.feeRate.value = parseRate(item.feeRate);
+  fields.feeRate.value = normalizeFeeRateChoice(item.feeRate);
   fields.memo.value = item.memo || "";
   output.formTitle.textContent = "商品編集";
   updateFormPreview();
@@ -381,7 +389,7 @@ function normalizeItem(item) {
     salePrice: Number(item.salePrice) || 0,
     shipping: Number(item.shipping) || 0,
     packing: Number(item.packing) || 0,
-    feeRate: parseRate(item.feeRate),
+    feeRate: normalizeFeeRateChoice(item.feeRate),
     actualFee:
       item.actualFee === null || item.actualFee === undefined || item.actualFee === "" ? null : Number(item.actualFee) || 0,
     category: item.category || "",
@@ -1194,6 +1202,7 @@ function closePasteDialog() {
 
 [fields.feeRate, fields.status, fields.saleDate].forEach((input) => {
   input.addEventListener("input", updateFormPreview);
+  input.addEventListener("change", updateFormPreview);
 });
 
 form.addEventListener("submit", saveItem);

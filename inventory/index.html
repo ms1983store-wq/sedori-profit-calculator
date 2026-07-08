@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=25" />
+    <link rel="stylesheet" href="./styles.css?v=26" />
   </head>
   <body>
     <main class="app-shell">
@@ -235,8 +235,10 @@
             <label class="field">
               <span>手数料率</span>
               <span class="rate-input">
-                <input id="feeRateInput" type="number" min="0" max="80" step="0.1" value="10" />
-                <span>%</span>
+                <select id="feeRateInput">
+                  <option value="10">10%</option>
+                  <option value="5">5%</option>
+                </select>
               </span>
             </label>
             <label class="field">
@@ -332,6 +334,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=25" defer></script>
+    <script src="./app.js?v=26" defer></script>
   </body>
 </html>

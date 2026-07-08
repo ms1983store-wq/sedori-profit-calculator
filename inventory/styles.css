@@ -423,7 +423,7 @@ select:focus,
 }
 
 .rate-input {
-  grid-template-columns: minmax(0, 1fr) 28px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .money-input > span,
@@ -446,6 +446,15 @@ select:focus,
 
 .rate-input input {
   padding-inline: 10px 4px;
+}
+
+.rate-input select {
+  height: 42px;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  font-weight: 850;
 }
 
 .calculation-strip {
