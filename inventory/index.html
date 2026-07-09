@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=26" />
+    <link rel="stylesheet" href="./styles.css?v=27" />
   </head>
   <body>
     <main class="app-shell">
@@ -175,10 +175,9 @@
             <label class="field">
               <span>状態</span>
               <select id="statusInput">
-                <option value="在庫">在庫</option>
-                <option value="売却済み">売却済み</option>
                 <option value="出品前">出品前</option>
                 <option value="出品中">出品中</option>
+                <option value="売却済み">売却済み</option>
                 <option value="発送準備">発送準備</option>
                 <option value="評価待ち">評価待ち</option>
               </select>
@@ -281,9 +280,9 @@
 
           <div class="filter-row" id="statusFilters" aria-label="状態フィルター">
             <button type="button" class="filter-chip active" data-status="all">すべて</button>
-            <button type="button" class="filter-chip" data-status="stock">在庫</button>
-            <button type="button" class="filter-chip" data-status="売却済み">売却済み</button>
             <button type="button" class="filter-chip" data-status="出品前">出品前</button>
+            <button type="button" class="filter-chip" data-status="出品中">出品中</button>
+            <button type="button" class="filter-chip" data-status="売却済み">売却済み</button>
             <button type="button" class="filter-chip" data-status="発送準備">発送準備</button>
             <button type="button" class="filter-chip" data-status="評価待ち">評価待ち</button>
           </div>
@@ -334,6 +333,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=26" defer></script>
+    <script src="./app.js?v=27" defer></script>
   </body>
 </html>

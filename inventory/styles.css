@@ -542,14 +542,6 @@ select:focus,
   --status-border: #cbd5e1;
 }
 
-.filter-chip[data-status="stock"],
-.status-badge[data-status="在庫"],
-.status-select[data-status="在庫"] {
-  --status-color: #059669;
-  --status-bg: #d1fae5;
-  --status-border: #86efac;
-}
-
 .filter-chip[data-status="出品前"],
 .status-badge[data-status="出品前"],
 .status-select[data-status="出品前"] {
@@ -558,6 +550,7 @@ select:focus,
   --status-border: #facc15;
 }
 
+.filter-chip[data-status="出品中"],
 .status-badge[data-status="出品中"],
 .status-select[data-status="出品中"] {
   --status-color: #2563eb;

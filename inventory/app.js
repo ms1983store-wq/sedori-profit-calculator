@@ -4,8 +4,7 @@ const defaultInventoryVersion = "management-csv-20260708-v1";
 const defaultFeeRate = 10;
 const feeRateOptions = [10, 5];
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち"]);
-const statusOptions = ["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち"];
-const stockFilterValue = "stock";
+const statusOptions = ["出品前", "出品中", "売却済み", "発送準備", "評価待ち"];
 const cloudApiUrl = "./api/inventory";
 const cloudSyncIntervalMs = 15000;
 
@@ -256,9 +255,9 @@ function normalizeMarket(value) {
 
 function normalizeStatus(value) {
   const status = String(value || "").trim();
-  if (!status) return "在庫";
+  if (!status || status === "在庫") return "出品中";
   if (status === "販売済み" || status === "完了") return "売却済み";
-  if (["在庫", "売却済み", "出品前", "出品中", "発送準備", "評価待ち"].includes(status)) {
+  if (statusOptions.includes(status)) {
     return status;
   }
   return status;
@@ -333,7 +332,7 @@ function fillForm(item) {
   fields.ledgerNo.value = item.ledgerNo || "";
   fields.name.value = item.name;
   fields.market.value = normalizeMarket(item.market || "メルカリ");
-  fields.status.value = normalizeStatus(item.status || "在庫");
+  fields.status.value = normalizeStatus(item.status);
   fields.purchaseDate.value = item.purchaseDate || "";
   fields.listingDate.value = item.listingDate || "";
   fields.saleDate.value = item.saleDate || "";
@@ -381,7 +380,7 @@ function normalizeItem(item) {
     ledgerNo,
     name: item.name || "",
     market: normalizeMarket(item.market || "メルカリ"),
-    status: normalizeStatus(item.status || "在庫"),
+    status: normalizeStatus(item.status),
     purchaseDate: item.purchaseDate || "",
     listingDate: item.listingDate || "",
     saleDate: item.saleDate || "",
@@ -475,7 +474,6 @@ function getFilteredItems() {
   return state.items
     .filter((item) => {
       if (state.filterStatus === "all") return true;
-      if (state.filterStatus === stockFilterValue) return !soldStatuses.has(item.status);
       return item.status === state.filterStatus;
     })
     .filter((item) => {
@@ -818,7 +816,7 @@ function mapManagementSheetRows(rows) {
   return rows
     .filter((row) => /^\d+$/.test(row[0] || "") && row[3])
     .map((row) => {
-      const status = normalizeStatus(row[2] || "在庫");
+      const status = normalizeStatus(row[2]);
       const purchasePrice = parseMoney(row[28] || row[7]);
       const shipping = parseMoney(row[30] || row[21] || row[20]);
       const packing = parseMoney(row[31] || row[22]);
@@ -923,6 +921,10 @@ function mergeImportedItems(importedItems) {
 
 function serializeItems(items) {
   return JSON.stringify(items.map(normalizeItem));
+}
+
+function hasLegacyStatusValues(items) {
+  return items.some((item) => normalizeStatus(item.status) !== String(item.status || "").trim());
 }
 
 function getMergeKeys(item) {
@@ -1067,7 +1069,7 @@ async function pullCloudInventory(options = {}) {
       if (!options.silent) showToast("クラウドから更新しました");
     }
 
-    if (mergedJson !== remoteJson) {
+    if (mergedJson !== remoteJson || hasLegacyStatusValues(remoteItems)) {
       queueCloudSave();
     }
   } catch {
@@ -1092,7 +1094,8 @@ async function initializeCloudSync() {
     const remoteItems = Array.isArray(remote.items) ? remote.items : [];
     if (remoteItems.length) {
       const merged = mergeItemCollections(remoteItems, state.items);
-      const shouldUpload = serializeItems(merged) !== serializeItems(remoteItems);
+      const shouldUpload =
+        serializeItems(merged) !== serializeItems(remoteItems) || hasLegacyStatusValues(remoteItems);
       applyCloudItems(merged);
       if (shouldUpload) {
         await pushCloudInventory({ force: true });
