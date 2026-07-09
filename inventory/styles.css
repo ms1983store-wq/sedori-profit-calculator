@@ -545,9 +545,9 @@ select:focus,
 .filter-chip[data-status="出品前"],
 .status-badge[data-status="出品前"],
 .status-select[data-status="出品前"] {
-  --status-color: #b45309;
-  --status-bg: #fef3c7;
-  --status-border: #facc15;
+  --status-color: #047857;
+  --status-bg: #d1fae5;
+  --status-border: #34d399;
 }
 
 .filter-chip[data-status="出品中"],
