@@ -2,7 +2,12 @@ const STORAGE_KEY = "rieki-calc/records/v1";
 const STORES_KEY = "rieki-calc/stores/v1";
 const ANNOUNCEMENT_KEY = "rieki-calc/announce-dismissed/v1";
 const INVENTORY_STORAGE_KEY = "sedori-inventory-ledger:v1";
+const INVENTORY_PENDING_SYNC_KEY = "sedori-inventory-ledger:cloud-pending/v1";
+const CALCULATOR_INVENTORY_CLOUD_PENDING_KEY = "rieki-calc/inventory-cloud-pending/v1";
+const CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY = "rieki-calc/inventory-cloud-migration/v1";
 const INVENTORY_SOURCE_PREFIX = "粗利計算:";
+const CLOUD_INVENTORY_URL = "https://sedori-profit-calculator.pages.dev/inventory/";
+const CLOUD_INVENTORY_API_URL = `${CLOUD_INVENTORY_URL}api/inventory`;
 const ANNOUNCEMENT_PUBLISHED_AT = "2026-07-09";
 const TANOMERU_METHOD = "tanomeru";
 const BACKUP_VERSION = 1;
@@ -218,10 +223,88 @@ function syncRecordToInventory(record) {
 
   try {
     window.localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(next));
+    window.localStorage.setItem(INVENTORY_PENDING_SYNC_KEY, "1");
+    if (window.location.origin !== new URL(CLOUD_INVENTORY_URL).origin) {
+      window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY, "1");
+    }
     return { synced: true, created: existingIndex < 0, item };
   } catch {
     return { synced: false, reason: "storage-failed" };
   }
+}
+
+let calculatorInventorySyncPromise = null;
+
+function prepareCalculatorInventoryCloudMigration() {
+  if (window.location.origin === new URL(CLOUD_INVENTORY_URL).origin) return;
+  if (window.localStorage.getItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY) === "1") return;
+  const hasCalculatorItems = loadInventoryItems().some((item) =>
+    String(item.sourceRef || "").startsWith(INVENTORY_SOURCE_PREFIX),
+  );
+  if (hasCalculatorItems) {
+    window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY, "1");
+  } else {
+    window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY, "1");
+  }
+}
+
+async function flushCalculatorInventoryToCloud() {
+  if (window.location.origin === new URL(CLOUD_INVENTORY_URL).origin) return true;
+  if (window.localStorage.getItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY) !== "1") return true;
+  if (calculatorInventorySyncPromise) return calculatorInventorySyncPromise;
+
+  const items = loadInventoryItems().filter((item) => String(item.sourceRef || "").startsWith(INVENTORY_SOURCE_PREFIX));
+  if (!items.length) {
+    window.localStorage.removeItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY);
+    window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY, "1");
+    return true;
+  }
+
+  calculatorInventorySyncPromise = fetch(CLOUD_INVENTORY_API_URL, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "text/plain;charset=UTF-8",
+    },
+    credentials: "include",
+    cache: "no-store",
+    body: JSON.stringify({ mode: "merge", source: "calculator", items }),
+  })
+    .then((response) => {
+      if (!response.ok) throw new Error(`Cloud inventory sync failed: ${response.status}`);
+      window.localStorage.removeItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY);
+      window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY, "1");
+      return true;
+    })
+    .catch(() => false)
+    .finally(() => {
+      calculatorInventorySyncPromise = null;
+    });
+
+  return calculatorInventorySyncPromise;
+}
+
+function configureInventoryNavigation() {
+  const link = document.querySelector("[data-inventory-link]");
+  if (!link || !/^https?:$/.test(window.location.protocol)) return;
+
+  const calculatorUrl = new URL("./", window.location.href);
+  calculatorUrl.search = "";
+  calculatorUrl.hash = "";
+
+  const inventoryUrl = new URL(CLOUD_INVENTORY_URL);
+  inventoryUrl.searchParams.set("return", calculatorUrl.href);
+  link.href = inventoryUrl.href;
+
+  link.addEventListener("click", (event) => {
+    if (window.localStorage.getItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY) !== "1") return;
+    event.preventDefault();
+    const destination = link.href;
+    Promise.race([
+      flushCalculatorInventoryToCloud(),
+      new Promise((resolve) => window.setTimeout(resolve, 900)),
+    ]).finally(() => window.location.assign(destination));
+  });
 }
 
 function addRecord(record) {
@@ -664,6 +747,7 @@ function initCalculator() {
       ? records.find((record) => record.id === savedRecordId)
       : records[0];
     const inventorySync = syncRecordToInventory(savedRecord);
+    flushCalculatorInventoryToCloud();
     editingId = null;
     nodes.editBanner.hidden = true;
     clearForm();
@@ -1025,6 +1109,13 @@ function initCalendar() {
   renderStoreSuggestions();
   renderCalendar();
 }
+
+prepareCalculatorInventoryCloudMigration();
+configureInventoryNavigation();
+flushCalculatorInventoryToCloud();
+
+window.addEventListener("online", () => flushCalculatorInventoryToCloud());
+window.addEventListener("focus", () => flushCalculatorInventoryToCloud());
 
 if (document.body.dataset.page === "calculator") {
   initCalculator();

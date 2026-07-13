@@ -12,10 +12,28 @@ const jsonHeaders = {
   "cache-control": "no-store",
 };
 
-function jsonResponse(body, status = 200) {
+const allowedCorsOrigins = new Set([
+  "https://ms1983store-wq.github.io",
+  "https://rieki-calc.hachi-ribe.workers.dev",
+]);
+
+function getResponseHeaders(request) {
+  const headers = { ...jsonHeaders };
+  const origin = request?.headers.get("origin") || "";
+  if (allowedCorsOrigins.has(origin)) {
+    headers["access-control-allow-origin"] = origin;
+    headers["access-control-allow-credentials"] = "true";
+    headers["access-control-allow-methods"] = "GET, POST, PUT, OPTIONS";
+    headers["access-control-allow-headers"] = "content-type";
+    headers.vary = "Origin";
+  }
+  return headers;
+}
+
+function jsonResponse(body, status = 200, request = null) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: jsonHeaders,
+    headers: getResponseHeaders(request),
   });
 }
 
@@ -36,11 +54,11 @@ function getUserEmail(request, env) {
   const devEmail =
     env.ALLOW_DEV_USER_HEADER === "true" ? normalizeEmail(request.headers.get("x-inventory-user-email")) : "";
   const email = devEmail || (accessEmail && accessJwt ? accessEmail : "");
-  if (!email) return { error: jsonResponse({ error: "Cloudflare Access login is required." }, 401) };
+  if (!email) return { error: jsonResponse({ error: "Cloudflare Access login is required." }, 401, request) };
 
   const allowedEmails = getAllowedEmails(env);
   if (allowedEmails.length && !allowedEmails.includes(email)) {
-    return { error: jsonResponse({ error: "This user is not allowed to access this inventory." }, 403) };
+    return { error: jsonResponse({ error: "This user is not allowed to access this inventory." }, 403, request) };
   }
 
   return { email };
@@ -110,9 +128,53 @@ async function writeState(db, userId, items, baseVersion, force) {
   };
 }
 
+function getItemKeys(item) {
+  const id = String(item?.id || "").trim();
+  const sourceRef = String(item?.sourceRef || "").trim();
+  return [id ? `id:${id}` : "", sourceRef ? `source:${sourceRef}` : ""].filter(Boolean);
+}
+
+function isIncomingItemNewer(incoming, existing) {
+  const incomingTime = Date.parse(incoming?.updatedAt || "");
+  const existingTime = Date.parse(existing?.updatedAt || "");
+  if (Number.isFinite(incomingTime) && Number.isFinite(existingTime)) return incomingTime >= existingTime;
+  if (Number.isFinite(incomingTime)) return true;
+  if (Number.isFinite(existingTime)) return false;
+  return true;
+}
+
+function mergeInventoryItems(currentItems, incomingItems, options = {}) {
+  const merged = currentItems.filter((item) => item && typeof item === "object").map((item) => ({ ...item }));
+  const indexByKey = new Map();
+
+  function indexItem(item, index) {
+    getItemKeys(item).forEach((key) => indexByKey.set(key, index));
+  }
+
+  merged.forEach(indexItem);
+  incomingItems.forEach((incoming) => {
+    if (!incoming || typeof incoming !== "object" || !String(incoming.name || "").trim()) return;
+    const keys = getItemKeys(incoming);
+    const existingIndex = keys.map((key) => indexByKey.get(key)).find((index) => index !== undefined);
+    if (existingIndex === undefined) {
+      const index = merged.push({ ...incoming }) - 1;
+      indexItem(incoming, index);
+      return;
+    }
+
+    const existing = merged[existingIndex];
+    if (options.source === "calculator" && String(existing.status || "") !== "出品前") return;
+    if (!isIncomingItemNewer(incoming, existing)) return;
+    merged[existingIndex] = { ...existing, ...incoming, id: existing.id || incoming.id };
+    indexItem(merged[existingIndex], existingIndex);
+  });
+
+  return merged;
+}
+
 async function handleRead(request, env) {
   if (!env.SEDORI_DB) {
-    return jsonResponse({ error: "D1 binding SEDORI_DB is not configured." }, 503);
+    return jsonResponse({ error: "D1 binding SEDORI_DB is not configured." }, 503, request);
   }
 
   const user = getUserEmail(request, env);
@@ -122,12 +184,12 @@ async function handleRead(request, env) {
   return jsonResponse({
     ...state,
     user: { email: user.email },
-  });
+  }, 200, request);
 }
 
 async function handleWrite(request, env) {
   if (!env.SEDORI_DB) {
-    return jsonResponse({ error: "D1 binding SEDORI_DB is not configured." }, 503);
+    return jsonResponse({ error: "D1 binding SEDORI_DB is not configured." }, 503, request);
   }
 
   const user = getUserEmail(request, env);
@@ -137,20 +199,39 @@ async function handleWrite(request, env) {
   try {
     body = await request.json();
   } catch {
-    return jsonResponse({ error: "Invalid JSON body." }, 400);
+    return jsonResponse({ error: "Invalid JSON body." }, 400, request);
   }
 
   if (!Array.isArray(body.items)) {
-    return jsonResponse({ error: "items must be an array." }, 400);
+    return jsonResponse({ error: "items must be an array." }, 400, request);
   }
 
   const itemsJson = JSON.stringify(body.items);
   if (itemsJson.length > 5_000_000) {
-    return jsonResponse({ error: "Inventory payload is too large." }, 413);
+    return jsonResponse({ error: "Inventory payload is too large." }, 413, request);
   }
 
+  const current = body.mode === "merge" ? await readState(env.SEDORI_DB, user.email) : null;
+  const items = current
+    ? mergeInventoryItems(current.items, body.items, { source: body.source })
+    : body.items;
+  if (JSON.stringify(items).length > 5_000_000) {
+    return jsonResponse({ error: "Merged inventory payload is too large." }, 413, request);
+  }
+  if (current && JSON.stringify(items) === JSON.stringify(current.items)) {
+    return jsonResponse({
+      ...current,
+      user: { email: user.email },
+    }, 200, request);
+  }
   const baseVersion = Number(body.baseVersion);
-  const result = await writeState(env.SEDORI_DB, user.email, body.items, baseVersion, body.force === true);
+  const result = await writeState(
+    env.SEDORI_DB,
+    user.email,
+    items,
+    current ? current.version : baseVersion,
+    body.force === true,
+  );
 
   if (result.conflict) {
     return jsonResponse(
@@ -160,13 +241,14 @@ async function handleWrite(request, env) {
         user: { email: user.email },
       },
       409,
+      request,
     );
   }
 
   return jsonResponse({
     ...result,
     user: { email: user.email },
-  });
+  }, 200, request);
 }
 
 export async function onRequestGet({ request, env }) {
@@ -181,9 +263,9 @@ export async function onRequestPost({ request, env }) {
   return handleWrite(request, env);
 }
 
-export async function onRequestOptions() {
+export async function onRequestOptions({ request }) {
   return new Response(null, {
     status: 204,
-    headers: jsonHeaders,
+    headers: getResponseHeaders(request),
   });
 }

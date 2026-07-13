@@ -1,5 +1,8 @@
 const storageKey = "sedori-inventory-ledger:v1";
 const defaultInventoryLoadedKey = "sedori-inventory-ledger:default-inventory-version";
+const cloudPendingSyncKey = "sedori-inventory-ledger:cloud-pending/v1";
+const cloudPendingDeletedKey = "sedori-inventory-ledger:cloud-deleted/v1";
+const calculatorReturnStorageKey = "sedori-inventory-ledger:calculator-return/v1";
 const defaultInventoryVersion = "management-csv-20260708-v1";
 const defaultFeeRate = 10;
 const feeRateOptions = [10, 5];
@@ -8,6 +11,11 @@ const statusOptions = ["出品前", "出品中", "売却済み", "発送準備",
 const tanomeruShippingMethod = "tanomeru";
 const cloudApiUrl = "./api/inventory";
 const cloudSyncIntervalMs = 15000;
+const canonicalCloudInventoryUrl = "https://sedori-profit-calculator.pages.dev/inventory/";
+const githubCalculatorUrl = "https://ms1983store-wq.github.io/sedori-profit-calculator/";
+const isCloudSyncHost =
+  window.location.hostname === "sedori-profit-calculator.pages.dev" ||
+  window.location.hostname.endsWith(".sedori-profit-calculator.pages.dev");
 
 const yenFormatter = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -36,6 +44,8 @@ const cloudSync = {
   saving: false,
   needsSave: false,
   version: 0,
+  updatedAt: null,
+  localRevision: 0,
   pollTimer: null,
   saveTimer: null,
 };
@@ -75,6 +85,8 @@ const output = {
   monthlyMargin: document.querySelector("#monthlyMargin"),
   inventoryBody: document.querySelector("#inventoryBody"),
   emptyState: document.querySelector("#emptyState"),
+  cloudSyncStatus: document.querySelector("#cloudSyncStatus"),
+  cloudSyncStatusText: document.querySelector("#cloudSyncStatusText"),
 };
 
 const controls = {
@@ -95,6 +107,8 @@ const controls = {
   viewPanels: Array.from(document.querySelectorAll("[data-view-panel]")),
   viewTargets: Array.from(document.querySelectorAll("[data-view-target]")),
   toast: document.querySelector("#toast"),
+  calculatorBackLink: document.querySelector("#calculatorBackLink"),
+  cloudInventoryLink: document.querySelector("#cloudInventoryLink"),
 };
 
 function parseMoney(value) {
@@ -194,6 +208,75 @@ function shiftMonth(monthString, amount) {
   const [year, month] = String(monthString || currentMonth()).split("-").map(Number);
   const date = new Date(year, (month || 1) - 1 + amount, 1);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function normalizeCalculatorReturnUrl(value) {
+  if (!value) return "";
+
+  try {
+    const url = new URL(value, window.location.href);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+
+    if (url.origin === "https://sedori-profit-calculator.pages.dev") {
+      return `${url.origin}/`;
+    }
+
+    if (url.origin === "https://ms1983store-wq.github.io" && url.pathname.startsWith("/sedori-profit-calculator/")) {
+      return githubCalculatorUrl;
+    }
+
+    if (url.origin === "https://rieki-calc.hachi-ribe.workers.dev") {
+      return `${url.origin}/`;
+    }
+
+    if (["localhost", "127.0.0.1"].includes(url.hostname)) {
+      return new URL("../", url).href;
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
+}
+
+function configureCalculatorBackLink() {
+  const params = new URLSearchParams(window.location.search);
+  const requested = normalizeCalculatorReturnUrl(params.get("return"));
+  const referrer = normalizeCalculatorReturnUrl(document.referrer);
+  const saved = normalizeCalculatorReturnUrl(localStorage.getItem(calculatorReturnStorageKey));
+  const target = requested || referrer || saved || githubCalculatorUrl;
+
+  if (requested || referrer) {
+    localStorage.setItem(calculatorReturnStorageKey, target);
+  }
+
+  if (controls.calculatorBackLink) {
+    controls.calculatorBackLink.href = target;
+  }
+
+  if (controls.cloudInventoryLink) {
+    const cloudUrl = new URL(canonicalCloudInventoryUrl);
+    cloudUrl.searchParams.set("return", target);
+    controls.cloudInventoryLink.href = cloudUrl.href;
+  }
+
+  return target;
+}
+
+function setCloudSyncStatus(stateName, message, options = {}) {
+  if (!output.cloudSyncStatus || !output.cloudSyncStatusText) return;
+  output.cloudSyncStatus.dataset.state = stateName;
+  output.cloudSyncStatusText.textContent = message;
+  if (controls.cloudInventoryLink) {
+    controls.cloudInventoryLink.hidden = options.showCloudLink !== true;
+  }
+}
+
+function formatCloudSyncStatus(updatedAt = cloudSync.updatedAt) {
+  const time = updatedAt
+    ? new Date(updatedAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })
+    : "";
+  return `クラウド最新版・${state.items.length}件${time ? `（${time}更新）` : ""}`;
 }
 
 function getMonthEndDate(monthString) {
@@ -380,8 +463,60 @@ function storeLocalItems() {
   localStorage.setItem(storageKey, JSON.stringify(state.items));
 }
 
+function hasPendingCloudChanges() {
+  return localStorage.getItem(cloudPendingSyncKey) === "1";
+}
+
+function markPendingCloudChanges() {
+  cloudSync.localRevision += 1;
+  localStorage.setItem(cloudPendingSyncKey, "1");
+  if (isCloudSyncHost) {
+    setCloudSyncStatus("saving", "端末の変更をクラウドへ同期中");
+  }
+}
+
+function clearPendingCloudChanges(expectedRevision = cloudSync.localRevision) {
+  if (expectedRevision !== cloudSync.localRevision) return false;
+  localStorage.removeItem(cloudPendingSyncKey);
+  localStorage.removeItem(cloudPendingDeletedKey);
+  return true;
+}
+
+function getPendingDeletedIds() {
+  try {
+    const ids = JSON.parse(localStorage.getItem(cloudPendingDeletedKey) || "[]");
+    return new Set(Array.isArray(ids) ? ids.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function rememberPendingDeletion(id) {
+  const ids = getPendingDeletedIds();
+  ids.add(String(id));
+  localStorage.setItem(cloudPendingDeletedKey, JSON.stringify([...ids]));
+}
+
+function forgetPendingDeletion(id) {
+  const ids = getPendingDeletedIds();
+  if (!ids.delete(String(id))) return;
+  if (ids.size) {
+    localStorage.setItem(cloudPendingDeletedKey, JSON.stringify([...ids]));
+  } else {
+    localStorage.removeItem(cloudPendingDeletedKey);
+  }
+}
+
+function applyPendingDeletions(items) {
+  const deletedIds = getPendingDeletedIds();
+  return deletedIds.size ? items.filter((item) => !deletedIds.has(String(item.id))) : items;
+}
+
 function saveItems(options = {}) {
   storeLocalItems();
+  if (options.dirty !== false) {
+    markPendingCloudChanges();
+  }
   if (options.cloud !== false) {
     queueCloudSave();
   }
@@ -467,7 +602,7 @@ function seedDefaultInventory() {
 
   if (additions.length || updated) {
     state.items = [...additions, ...state.items];
-    saveItems();
+    saveItems({ cloud: false, dirty: false });
   }
 
   localStorage.setItem(defaultInventoryLoadedKey, defaultInventoryVersion);
@@ -673,6 +808,7 @@ function saveItem(event) {
   applyStatusDates(item, existing?.status || "");
   fields.saleDate.value = item.saleDate;
   fields.listingDate.value = item.listingDate;
+  forgetPendingDeletion(item.id);
 
   const index = state.items.findIndex((existing) => existing.id === item.id);
   if (index >= 0) {
@@ -719,6 +855,7 @@ function deleteItem(id) {
   if (!item) return;
   const confirmed = window.confirm(`${item.name} を削除しますか？`);
   if (!confirmed) return;
+  rememberPendingDeletion(id);
   state.items = state.items.filter((candidate) => candidate.id !== id);
   saveItems();
   render();
@@ -1018,6 +1155,23 @@ function applyCloudItems(items) {
   cloudSync.applyingRemote = false;
 }
 
+function mergePendingLocalWithRemote(remoteItems) {
+  return applyPendingDeletions(mergeItemCollections(remoteItems, state.items));
+}
+
+function updateCloudVersion(result) {
+  cloudSync.version = Number(result.version) || cloudSync.version;
+  cloudSync.updatedAt = result.updatedAt || cloudSync.updatedAt;
+}
+
+function finishCloudSave(result, revision) {
+  updateCloudVersion(result);
+  cloudSync.available = true;
+  if (clearPendingCloudChanges(revision)) {
+    setCloudSyncStatus("synced", formatCloudSyncStatus());
+  }
+}
+
 async function fetchCloudInventory() {
   const response = await fetch(cloudApiUrl, {
     headers: { accept: "application/json" },
@@ -1061,23 +1215,26 @@ async function pushCloudInventory(options = {}) {
   }
 
   cloudSync.saving = true;
+  const revision = cloudSync.localRevision;
+  setCloudSyncStatus("saving", "端末の変更をクラウドへ同期中");
   try {
     const result = await writeCloudInventory(options);
 
     if (result.conflict) {
-      cloudSync.version = Number(result.version) || cloudSync.version;
+      updateCloudVersion(result);
       const remoteItems = Array.isArray(result.items) ? result.items : [];
-      const merged = mergeItemCollections(remoteItems, state.items);
+      const merged = mergePendingLocalWithRemote(remoteItems);
       applyCloudItems(merged);
       const retry = await writeCloudInventory({ force: true });
-      cloudSync.version = Number(retry.version) || cloudSync.version;
+      finishCloudSave(retry, revision);
       showToast("クラウドの在庫とマージしました");
       return;
     }
 
-    cloudSync.version = Number(result.version) || cloudSync.version;
+    finishCloudSave(result, revision);
   } catch {
     cloudSync.available = false;
+    setCloudSyncStatus("error", "同期できません。通信を確認すると自動で再試行します");
   } finally {
     cloudSync.saving = false;
     if (cloudSync.needsSave) {
@@ -1093,25 +1250,43 @@ async function pullCloudInventory(options = {}) {
   try {
     const remote = await fetchCloudInventory();
     const remoteVersion = Number(remote.version) || 0;
-    if (remoteVersion <= cloudSync.version) return;
+    cloudSync.available = true;
+    cloudSync.updatedAt = remote.updatedAt || cloudSync.updatedAt;
+    if (remoteVersion <= cloudSync.version) {
+      if (hasPendingCloudChanges()) {
+        queueCloudSave();
+      } else {
+        setCloudSyncStatus("synced", formatCloudSyncStatus());
+      }
+      return;
+    }
 
     const remoteItems = Array.isArray(remote.items) ? remote.items : [];
-    const merged = mergeItemCollections(remoteItems, state.items);
     const remoteJson = serializeItems(remoteItems);
-    const mergedJson = serializeItems(merged);
     const localJson = serializeItems(state.items);
 
     cloudSync.version = remoteVersion;
-    if (mergedJson !== localJson) {
-      applyCloudItems(merged);
-      if (!options.silent) showToast("クラウドから更新しました");
+    if (hasPendingCloudChanges()) {
+      const merged = mergePendingLocalWithRemote(remoteItems);
+      const mergedJson = serializeItems(merged);
+      if (mergedJson !== localJson) applyCloudItems(merged);
+      if (mergedJson !== remoteJson || hasLegacyStatusValues(remoteItems)) {
+        queueCloudSave();
+      } else {
+        clearPendingCloudChanges();
+        setCloudSyncStatus("synced", formatCloudSyncStatus());
+      }
+      return;
     }
 
-    if (mergedJson !== remoteJson || hasLegacyStatusValues(remoteItems)) {
-      queueCloudSave();
+    if (remoteJson !== localJson) {
+      applyCloudItems(remoteItems);
+      if (!options.silent) showToast("クラウドから更新しました");
     }
+    setCloudSyncStatus("synced", formatCloudSyncStatus());
   } catch {
     cloudSync.available = false;
+    setCloudSyncStatus("error", "クラウドを確認できません。通信時に自動更新します");
   }
 }
 
@@ -1123,30 +1298,52 @@ function startCloudPolling() {
 }
 
 async function initializeCloudSync() {
+  if (!isCloudSyncHost) {
+    setCloudSyncStatus("error", "このURLは端末保存版です。同期版で最新版を確認してください", {
+      showCloudLink: true,
+    });
+    return;
+  }
+
+  setCloudSyncStatus("checking", "クラウドの最新版を確認中");
   try {
     const remote = await fetchCloudInventory();
     cloudSync.available = true;
     cloudSync.initialized = true;
     cloudSync.version = Number(remote.version) || 0;
+    cloudSync.updatedAt = remote.updatedAt || null;
 
     const remoteItems = Array.isArray(remote.items) ? remote.items : [];
     if (remoteItems.length) {
-      const merged = mergeItemCollections(remoteItems, state.items);
-      const shouldUpload =
-        serializeItems(merged) !== serializeItems(remoteItems) || hasLegacyStatusValues(remoteItems);
-      applyCloudItems(merged);
-      if (shouldUpload) {
-        await pushCloudInventory({ force: true });
+      if (hasPendingCloudChanges()) {
+        const merged = mergePendingLocalWithRemote(remoteItems);
+        const shouldUpload =
+          serializeItems(merged) !== serializeItems(remoteItems) || hasLegacyStatusValues(remoteItems);
+        applyCloudItems(merged);
+        if (shouldUpload) {
+          await pushCloudInventory({ force: true });
+        } else {
+          clearPendingCloudChanges();
+          setCloudSyncStatus("synced", formatCloudSyncStatus());
+        }
+      } else {
+        applyCloudItems(remoteItems);
+        setCloudSyncStatus("synced", formatCloudSyncStatus());
       }
     } else if (state.items.length) {
+      if (!hasPendingCloudChanges()) markPendingCloudChanges();
       await pushCloudInventory({ force: true });
       showToast("端末内の在庫をクラウドへ同期しました");
+    } else {
+      clearPendingCloudChanges();
+      setCloudSyncStatus("synced", formatCloudSyncStatus());
     }
 
     startCloudPolling();
   } catch {
     cloudSync.available = false;
     cloudSync.initialized = false;
+    setCloudSyncStatus("error", "クラウドに接続できません。再表示すると再試行します");
   }
 }
 
@@ -1186,6 +1383,10 @@ function reloadDefaultInventory() {
   );
   if (!confirmed) return;
 
+  const defaultIds = new Set(defaultItems.map((item) => String(item.id)));
+  state.items.forEach((item) => {
+    if (!defaultIds.has(String(item.id))) rememberPendingDeletion(item.id);
+  });
   state.items = defaultItems;
   state.filterStatus = "all";
   state.search = "";
@@ -1325,6 +1526,7 @@ window.addEventListener("storage", (event) => {
     const merged = mergeItemCollections(state.items, incoming);
     if (serializeItems(merged) === serializeItems(state.items)) return;
     applyCloudItems(merged);
+    markPendingCloudChanges();
     queueCloudSave();
     showToast("粗利計算の保存内容を反映しました");
   } catch {
@@ -1338,6 +1540,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+configureCalculatorBackLink();
 loadItems();
 state.selectedMonth = getLatestSaleMonth() || currentMonth();
 switchView(getInitialView(), { updateHash: false, scroll: false });

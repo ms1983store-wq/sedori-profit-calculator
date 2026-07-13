@@ -30,12 +30,14 @@
 - 同期版 在庫管理アプリ: `https://sedori-profit-calculator.pages.dev/inventory/`
 
 在庫管理アプリは `inventory/` フォルダに分けて配置しています。保存データとPWAキャッシュは粗利計算アプリと別のキーを使います。
+GitHub Pages 側の在庫帳は端末保存版として案内を表示し、日常利用では Cloudflare の同期版を正本にします。粗利計算から同期版へ移動すると戻り先URLを引き継ぐため、カレンダー履歴が保存されている元のドメインへ戻れます。
 在庫管理アプリには管理表CSV由来の初期在庫データを同梱しているため、新しい端末で開いても在庫数が表示されます。
 
 ## Cloudflare同期版
 
 `functions/inventory/api/inventory.js` に Cloudflare Pages Functions 用の同期APIを追加しています。
 Cloudflare Pages + D1 + Access を設定すると、在庫管理アプリは `/inventory/api/inventory` を使ってPC/スマホ間で同期します。
+GitHub Pages の粗利計算で保存した「出品前」の商品も、Cloudflare Access へのログイン後に同APIへマージ送信されます。送信できない間は端末に未送信状態を残し、次回表示・オンライン復帰時に再試行します。
 
 - D1 binding名: `SEDORI_DB`
 - 任意の許可メール環境変数: `INVENTORY_OWNER_EMAIL`

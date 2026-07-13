@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=28" />
+    <link rel="stylesheet" href="./styles.css?v=29" />
   </head>
   <body>
     <main class="app-shell">
@@ -20,7 +20,7 @@
           <h1>せどり在庫帳</h1>
         </div>
         <div class="header-actions" aria-label="データ操作">
-          <a class="icon-button" href="../" aria-label="粗利計算へ戻る" title="粗利計算へ戻る">
+          <a class="icon-button" id="calculatorBackLink" href="../" aria-label="粗利計算へ戻る" title="粗利計算へ戻る">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m12 19-7-7 7-7" />
               <path d="M19 12H5" />
@@ -65,6 +65,12 @@
           </button>
         </div>
       </header>
+
+      <div class="sync-status" id="cloudSyncStatus" data-state="checking" role="status" aria-live="polite">
+        <span class="sync-status-dot" aria-hidden="true"></span>
+        <span id="cloudSyncStatusText">クラウドの最新版を確認中</span>
+        <a id="cloudInventoryLink" href="https://sedori-profit-calculator.pages.dev/inventory/" hidden>同期版を開く</a>
+      </div>
 
       <nav class="app-tabs" aria-label="ページ切替">
         <button class="tab-button active" type="button" data-view-tab="top" aria-selected="true">トップ</button>
@@ -339,6 +345,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=30" defer></script>
+    <script src="./app.js?v=31" defer></script>
   </body>
 </html>
