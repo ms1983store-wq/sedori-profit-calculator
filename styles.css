@@ -34,7 +34,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -92,6 +93,59 @@ h1 {
   font-size: 0.76rem;
 }
 
+.announcement {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+  border: 1px solid #f6c846;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #7a4b00;
+  padding: 11px 12px;
+}
+
+.announcement-heading {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+}
+
+.announcement-body {
+  min-width: 0;
+  font-size: 0.78rem;
+}
+
+.announcement-body > strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.announcement-body p {
+  margin: 7px 0 0;
+  color: #8a5b0a;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.announcement-actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.announcement-actions button {
+  border: 1px solid #f6c846;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #8a5b0a;
+  cursor: pointer;
+  padding: 4px 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .nav-pill,
 .month-button {
   flex: 0 0 auto;
@@ -145,7 +199,8 @@ h1 {
   font-weight: 700;
 }
 
-.field input {
+.field input,
+.field select {
   width: 100%;
   min-width: 0;
   border: 1px solid #e2e8f0;
@@ -157,7 +212,8 @@ h1 {
   font-size: 1rem;
 }
 
-.field input:focus {
+.field input:focus,
+.field select:focus {
   border-color: #a4b3ff;
   box-shadow: 0 0 0 3px rgba(125, 135, 255, 0.24);
 }
@@ -175,6 +231,37 @@ h1 {
 .field-grid.three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+}
+
+.shipping-mode-button {
+  width: 100%;
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--indigo);
+  cursor: pointer;
+  padding: 9px 10px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.shipping-mode-button.active {
+  border-color: var(--indigo);
+  background: var(--indigo);
+  color: #ffffff;
+}
+
+.shipping-mode-button.compact {
+  padding: 7px 9px;
+  font-size: 0.68rem;
+}
+
+.shipping-mode-note {
+  margin: -7px 0 0;
+  color: var(--indigo);
+  font-size: 0.68rem;
+  line-height: 1.5;
 }
 
 .result-panel {
@@ -393,6 +480,24 @@ h1 {
   white-space: nowrap;
 }
 
+.shipping-badge {
+  display: inline-block;
+  margin-left: 5px;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: var(--indigo);
+  padding: 2px 6px;
+  font-size: 0.6rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.store-detail {
+  color: var(--indigo);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .record-detail {
   margin-top: 3px;
   color: var(--faint);
@@ -463,6 +568,29 @@ h1 {
   margin: 0;
   color: #314158;
   font-size: 0.92rem;
+}
+
+.backup-panel > strong {
+  color: #45556c;
+  font-size: 0.76rem;
+}
+
+.backup-panel ol {
+  display: grid;
+  gap: 3px;
+  margin: -4px 0 2px;
+  padding-left: 22px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+.backup-panel .backup-warning {
+  border: 1px solid #fee685;
+  border-radius: 9px;
+  background: #fffbeb;
+  color: #a34a00;
+  padding: 8px 9px;
 }
 
 .backup-panel p {
@@ -697,7 +825,7 @@ button.calendar-day {
 }
 
 .day-card {
-  scroll-margin-top: 280px;
+  scroll-margin-top: 500px;
   overflow: hidden;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.62);
@@ -792,7 +920,8 @@ button.calendar-day {
   gap: 8px;
 }
 
-.small-field input {
+.small-field input,
+.small-field select {
   border-radius: 9px;
   padding: 8px 10px;
   font-size: 0.9rem;
@@ -871,6 +1000,7 @@ button.calendar-day {
   .nav-pill,
   .month-button,
   .field input,
+  .field select,
   .secondary-button,
   .month-summary {
     border-color: #314158;
@@ -879,6 +1009,10 @@ button.calendar-day {
   }
 
   .field input {
+    color: #f1f5f9;
+  }
+
+  .field select {
     color: #f1f5f9;
   }
 
@@ -892,8 +1026,50 @@ button.calendar-day {
     color: #ffd236;
   }
 
+  .announcement {
+    border-color: #854d0e;
+    background: rgba(69, 26, 3, 0.58);
+    color: #fde68a;
+  }
+
+  .announcement-body p,
+  .announcement-actions button {
+    color: #fcd34d;
+  }
+
+  .announcement-actions button {
+    border-color: #854d0e;
+    background: rgba(30, 41, 59, 0.68);
+  }
+
+  .shipping-mode-button {
+    border-color: #4338ca;
+    background: rgba(29, 41, 61, 0.88);
+    color: #a5b4fc;
+  }
+
+  .shipping-mode-button.active {
+    background: var(--indigo);
+    color: #ffffff;
+  }
+
   .backup-panel h2 {
     color: #e2e8f0;
+  }
+
+  .backup-panel > strong {
+    color: #e2e8f0;
+  }
+
+  .backup-panel .backup-warning {
+    border-color: #854d0e;
+    background: rgba(69, 26, 3, 0.52);
+    color: #fcd34d;
+  }
+
+  .shipping-badge {
+    background: rgba(67, 56, 202, 0.36);
+    color: #c7d2fe;
   }
 
   .backup-actions button,

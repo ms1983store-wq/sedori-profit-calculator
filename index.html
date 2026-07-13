@@ -10,7 +10,7 @@
     />
     <title>概算 粗利計算</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=13" />
+    <link rel="stylesheet" href="./styles.css?v=14" />
   </head>
   <body data-page="calculator">
     <main class="page-shell">
@@ -23,6 +23,23 @@
           </nav>
         </header>
         <p class="lead">売値・仕入値・送料を入れると、だいたいの粗利が出るよ</p>
+
+        <aside class="announcement" id="announcement" aria-labelledby="announcementTitle" hidden>
+          <div class="announcement-heading">
+            <span aria-hidden="true">📢</span>
+            <strong id="announcementTitle">お知らせ</strong>
+          </div>
+          <div class="announcement-body">
+            <strong>たのメル便に対応しました！</strong>
+            <p id="announcementDetail" hidden>
+              送料欄の下に「🚚 たのメル便で送る場合はタップ」ボタンを追加しました。タップすると送料はサイズを選ぶだけ（80〜450サイズ）で自動入力。粗利と損益分岐点も、たのメル便の手数料計算で表示します。カレンダーの編集からも切り替えできます。
+            </p>
+            <div class="announcement-actions">
+              <button type="button" id="announcementDetailButton">詳細</button>
+              <button type="button" id="announcementDismissButton">確認済み</button>
+            </div>
+          </div>
+        </aside>
 
         <div class="edit-banner" id="editBanner" hidden>
           <span>✏️ 編集中だよ。直して「更新する」を押してね</span>
@@ -50,15 +67,35 @@
               <span>仕入値（円）</span>
               <input id="purchasePriceInput" type="number" inputmode="numeric" placeholder="例：30000" />
             </label>
-            <label class="field">
+            <div class="field">
               <span>送料（円）</span>
               <input id="shippingInput" type="number" inputmode="numeric" placeholder="例：1000" />
-            </label>
+              <select id="tanomeruSizeInput" aria-label="たのメル便のサイズ" hidden>
+                <option value="">サイズを選ぶ</option>
+                <option value="1700">80サイズ ¥1,700</option>
+                <option value="2400">120サイズ ¥2,400</option>
+                <option value="3400">160サイズ ¥3,400</option>
+                <option value="5000">200サイズ ¥5,000</option>
+                <option value="8600">250サイズ ¥8,600</option>
+                <option value="12000">300サイズ ¥12,000</option>
+                <option value="18500">350サイズ ¥18,500</option>
+                <option value="25400">400サイズ ¥25,400</option>
+                <option value="33000">450サイズ ¥33,000</option>
+              </select>
+            </div>
           </div>
+
+          <button class="shipping-mode-button" type="button" id="shippingModeButton">
+            🚚 たのメル便で送る場合はタップ
+          </button>
+          <p class="shipping-mode-note" id="shippingModeNote" hidden>
+            送料はサイズを選ぶと自動。手数料10%は「売値−送料」にかかる計算だよ
+          </p>
 
           <label class="field">
             <span>店舗名（任意）</span>
-            <input id="storeNameInput" type="text" placeholder="例：ハードオフ 〇〇店" />
+            <input id="storeNameInput" type="text" list="storeSuggestions" placeholder="例：ハードオフ 〇〇店" />
+            <datalist id="storeSuggestions"></datalist>
           </label>
         </section>
 
@@ -66,7 +103,7 @@
           <div class="result-line">
             <span>
               概算の粗利
-              <small>（手数料10%）</small>
+              <small id="profitMethodLabel">（手数料10%）</small>
             </span>
             <strong id="profitValue" class="muted-value">売値を入れてね</strong>
           </div>
@@ -100,9 +137,19 @@
 
         <section class="backup-panel" aria-labelledby="backupTitle">
           <h2 id="backupTitle">📦 スマホの引き継ぎ・バックアップ</h2>
-          <p>
-            今のスマホで「書き出す」→ ファイルを保存（FilesやAirDrop）。
-            新しいスマホでこのページを開いて「読み込む」→ そのファイルを選ぶと引き継げるよ。
+          <strong>📤 バックアップの取り方</strong>
+          <ol>
+            <li>下の「書き出す」を押す → ファイルの画面が開く</li>
+            <li>画面下の共有ボタン（□に↑）をタップ</li>
+            <li>「“ファイル”に保存」を選んで保存（これで完了！）</li>
+          </ol>
+          <strong>📥 戻し方（新しいスマホへの引き継ぎも同じ）</strong>
+          <ol>
+            <li>このページを開いて「読み込む」を押す</li>
+            <li>「ファイル」アプリから、保存したバックアップを選ぶ</li>
+          </ol>
+          <p class="backup-warning">
+            ⚠️ ホーム画面のアイコンを削除すると、中の記録も一緒に消えます。消したり入れ替えたりする前に、必ず「書き出す」でバックアップを！
           </p>
           <div class="backup-actions">
             <button type="button" id="exportBackupButton">書き出す</button>
@@ -125,6 +172,6 @@
       </div>
     </main>
 
-    <script src="./app.js?v=12" defer></script>
+    <script src="./app.js?v=14" defer></script>
   </body>
 </html>

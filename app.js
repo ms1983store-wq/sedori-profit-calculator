@@ -1,7 +1,22 @@
 const STORAGE_KEY = "rieki-calc/records/v1";
+const STORES_KEY = "rieki-calc/stores/v1";
+const ANNOUNCEMENT_KEY = "rieki-calc/announce-dismissed/v1";
+const ANNOUNCEMENT_PUBLISHED_AT = "2026-07-09";
+const TANOMERU_METHOD = "tanomeru";
 const BACKUP_VERSION = 1;
 const FEE_RATE = 0.1;
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
+const TANOMERU_SIZES = [
+  { size: 80, fee: 1700 },
+  { size: 120, fee: 2400 },
+  { size: 160, fee: 3400 },
+  { size: 200, fee: 5000 },
+  { size: 250, fee: 8600 },
+  { size: 300, fee: 12000 },
+  { size: 350, fee: 18500 },
+  { size: 400, fee: 25400 },
+  { size: 450, fee: 33000 },
+];
 
 function todayJst() {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
@@ -29,22 +44,33 @@ function formatYen(value) {
   return `${sign}¥${Math.abs(amount).toLocaleString("ja-JP")}`;
 }
 
-function calculateFee(salePrice) {
-  return Math.round((salePrice ?? 0) * FEE_RATE);
+function calculateFee(salePrice, method = null, shipping = 0) {
+  const feeBase = method === TANOMERU_METHOD ? (salePrice ?? 0) - (shipping ?? 0) : salePrice ?? 0;
+  return Math.round(feeBase * FEE_RATE);
 }
 
-function estimateProfit({ salePrice, purchasePrice, shipping }) {
+function estimateProfit({ salePrice, purchasePrice, shipping, method }) {
   if (!salePrice || salePrice <= 0) return null;
-  return salePrice - calculateFee(salePrice) - (purchasePrice ?? 0) - (shipping ?? 0);
+  return salePrice - calculateFee(salePrice, method, shipping) - (purchasePrice ?? 0) - (shipping ?? 0);
 }
 
-function calculateBreakEven(purchasePrice, shipping) {
-  const totalCost = (purchasePrice ?? 0) + (shipping ?? 0);
+function calculateBreakEven(purchasePrice, shipping, method = null) {
+  const purchase = purchasePrice ?? 0;
+  const delivery = shipping ?? 0;
+  const totalCost = purchase + delivery;
   if (totalCost <= 0) return null;
 
-  let price = Math.max(0, Math.floor(totalCost / (1 - FEE_RATE)) - 5);
-  while (price - calculateFee(price) < totalCost) {
+  const feeBearingCost = method === TANOMERU_METHOD ? purchase : totalCost;
+  const deliveryOffset = method === TANOMERU_METHOD ? delivery : 0;
+  let price = Math.max(1, deliveryOffset + Math.floor(feeBearingCost / (1 - FEE_RATE)) - 5);
+  while (estimateProfit({ salePrice: price, purchasePrice: purchase, shipping: delivery, method }) < 0) {
     price += 1;
+  }
+  while (
+    price > 1 &&
+    estimateProfit({ salePrice: price - 1, purchasePrice: purchase, shipping: delivery, method }) >= 0
+  ) {
+    price -= 1;
   }
   return price;
 }
@@ -70,10 +96,36 @@ function loadRecords() {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const records = JSON.parse(raw);
-    return Array.isArray(records) ? records : [];
+    return Array.isArray(records) ? records.map(normalizeRecord) : [];
   } catch {
     return [];
   }
+}
+
+function loadStores() {
+  let savedStores = [];
+  try {
+    const raw = window.localStorage.getItem(STORES_KEY);
+    const stores = raw ? JSON.parse(raw) : [];
+    savedStores = Array.isArray(stores) ? stores : [];
+  } catch {
+    savedStores = [];
+  }
+
+  return [...new Set([...savedStores, ...loadRecords().map((record) => record.store)].filter(Boolean))];
+}
+
+function saveStores(stores) {
+  window.localStorage.setItem(STORES_KEY, JSON.stringify([...new Set(stores.filter(Boolean))]));
+}
+
+function addStore(store) {
+  const name = String(store ?? "").trim();
+  const stores = loadStores();
+  if (!name || stores.includes(name)) return stores;
+  const next = [name, ...stores];
+  saveStores(next);
+  return next;
 }
 
 function saveRecords(records) {
@@ -81,6 +133,7 @@ function saveRecords(records) {
 }
 
 function normalizeRecord(record) {
+  const store = String(record.store ?? record.storeName ?? "").trim();
   return {
     id: record.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     date: record.date || todayJst(),
@@ -88,16 +141,18 @@ function normalizeRecord(record) {
     salePrice: parseAmount(record.salePrice),
     purchasePrice: parseAmount(record.purchasePrice),
     shipping: parseAmount(record.shipping),
-    storeName: String(record.storeName ?? "").trim(),
+    store: store || null,
+    method: record.method === TANOMERU_METHOD ? TANOMERU_METHOD : null,
   };
 }
 
 function addRecord(record) {
   const records = loadRecords();
+  const normalized = normalizeRecord(record);
   const next = [
     {
+      ...normalized,
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      ...record,
     },
     ...records,
   ];
@@ -127,6 +182,7 @@ function exportBackup(records) {
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     records: records.map(normalizeRecord),
+    stores: loadStores(),
   };
   downloadText(`rieki-calc-backup-${todayJst()}.json`, JSON.stringify(payload, null, 2), "application/json");
 }
@@ -139,6 +195,7 @@ function exportCsv(records) {
     "売値",
     "仕入値",
     "送料",
+    "配送",
     "メルカリ手数料",
     "概算粗利",
     "粗利率",
@@ -152,11 +209,14 @@ function exportCsv(records) {
     return [
       normalized.date,
       normalized.itemName,
-      normalized.storeName,
+      normalized.store,
       normalized.salePrice ?? "",
       normalized.purchasePrice ?? "",
       normalized.shipping ?? "",
-      normalized.salePrice ? calculateFee(normalized.salePrice) : "",
+      normalized.method === TANOMERU_METHOD ? "たのメル便" : "",
+      normalized.salePrice
+        ? calculateFee(normalized.salePrice, normalized.method, normalized.shipping)
+        : "",
       profit ?? "",
       margin,
       recordBreakEven(normalized) ?? "",
@@ -174,7 +234,7 @@ function exportCsv(records) {
 function mergeImportedRecords(currentRecords, importedRecords) {
   const merged = new Map(currentRecords.map((record) => [record.id, normalizeRecord(record)]));
   importedRecords.map(normalizeRecord).forEach((record) => {
-    merged.set(record.id, record);
+    if (!merged.has(record.id)) merged.set(record.id, record);
   });
   return [...merged.values()].sort((a, b) => String(b.date).localeCompare(String(a.date)));
 }
@@ -196,11 +256,12 @@ function recordProfit(record) {
     salePrice: record.salePrice,
     purchasePrice: record.purchasePrice,
     shipping: record.shipping,
+    method: record.method,
   });
 }
 
 function recordBreakEven(record) {
-  return calculateBreakEven(record.purchasePrice, record.shipping);
+  return calculateBreakEven(record.purchasePrice, record.shipping, record.method);
 }
 
 function summarizeRecords(records) {
@@ -238,8 +299,11 @@ function renderRecordItem(record, { onEdit, onDelete, tagName = "li" } = {}) {
   item.innerHTML = `
     <div class="record-main">
       <div class="record-text">
-        <div class="record-name">${escapeHtml(record.itemName || "（品名なし）")}</div>
-        ${record.storeName ? `<div class="record-detail">店舗 ${escapeHtml(record.storeName)}</div>` : ""}
+        <div class="record-name">
+          ${escapeHtml(record.itemName || "（品名なし）")}
+          ${record.method === TANOMERU_METHOD ? '<span class="shipping-badge">🚚 たのメル便</span>' : ""}
+        </div>
+        ${record.store ? `<div class="record-detail store-detail">🏬 ${escapeHtml(record.store)}</div>` : ""}
         <div class="record-detail">
           売値 ${formatYen(record.salePrice ?? 0)} ／ 仕入 ${formatYen(record.purchasePrice ?? 0)} ／ 送料 ${formatYen(record.shipping ?? 0)}
         </div>
@@ -255,14 +319,22 @@ function renderRecordItem(record, { onEdit, onDelete, tagName = "li" } = {}) {
     </div>
   `;
 
-  item.querySelector(".edit-button").addEventListener("click", () => onEdit?.(record));
-  item.querySelector(".delete-button").addEventListener("click", () => onDelete?.(record.id));
+  item.querySelector(".edit-button").addEventListener("click", (event) => {
+    event.preventDefault();
+    if (onEdit) onEdit(record);
+  });
+  item.querySelector(".delete-button").addEventListener("click", (event) => {
+    event.preventDefault();
+    if (onDelete) onDelete(record.id);
+  });
   return item;
 }
 
 function initCalculator() {
   let records = loadRecords();
+  let stores = loadStores();
   let editingId = null;
+  let shippingMethod = null;
   let savedTimer = null;
 
   const fields = {
@@ -271,13 +343,15 @@ function initCalculator() {
     salePrice: document.querySelector("#salePriceInput"),
     purchasePrice: document.querySelector("#purchasePriceInput"),
     shipping: document.querySelector("#shippingInput"),
-    storeName: document.querySelector("#storeNameInput"),
+    tanomeruSize: document.querySelector("#tanomeruSizeInput"),
+    store: document.querySelector("#storeNameInput"),
   };
 
   const nodes = {
     editBanner: document.querySelector("#editBanner"),
     cancelEditButton: document.querySelector("#cancelEditButton"),
     profit: document.querySelector("#profitValue"),
+    profitMethodLabel: document.querySelector("#profitMethodLabel"),
     breakEven: document.querySelector("#breakEvenValue"),
     breakEvenNote: document.querySelector("#breakEvenNote"),
     saveButton: document.querySelector("#saveButton"),
@@ -291,10 +365,53 @@ function initCalculator() {
     exportBackupButton: document.querySelector("#exportBackupButton"),
     importBackupInput: document.querySelector("#importBackupInput"),
     exportCsvButton: document.querySelector("#exportCsvButton"),
+    shippingModeButton: document.querySelector("#shippingModeButton"),
+    shippingModeNote: document.querySelector("#shippingModeNote"),
+    storeSuggestions: document.querySelector("#storeSuggestions"),
+    announcement: document.querySelector("#announcement"),
+    announcementDetail: document.querySelector("#announcementDetail"),
+    announcementDetailButton: document.querySelector("#announcementDetailButton"),
+    announcementDismissButton: document.querySelector("#announcementDismissButton"),
   };
 
   fields.date.max = todayJst();
   fields.date.value = todayJst();
+
+  function renderStoreSuggestions() {
+    nodes.storeSuggestions.replaceChildren(
+      ...stores.map((store) => {
+        const option = document.createElement("option");
+        option.value = store;
+        return option;
+      }),
+    );
+  }
+
+  function renderShippingMode() {
+    const isTanomeru = shippingMethod === TANOMERU_METHOD;
+    fields.shipping.hidden = isTanomeru;
+    fields.tanomeruSize.hidden = !isTanomeru;
+    nodes.shippingModeNote.hidden = !isTanomeru;
+    nodes.shippingModeButton.classList.toggle("active", isTanomeru);
+    nodes.shippingModeButton.textContent = isTanomeru
+      ? "🚚 たのメル便で計算中（タップでふつうに戻す）"
+      : "🚚 たのメル便で送る場合はタップ";
+    nodes.profitMethodLabel.textContent = isTanomeru ? "（🚚たのメル便）" : "（手数料10%）";
+  }
+
+  function initAnnouncement() {
+    if (!nodes.announcement) return;
+    let dismissed = [];
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(ANNOUNCEMENT_KEY) || "[]");
+      dismissed = Array.isArray(saved) ? saved : [];
+    } catch {
+      dismissed = [];
+    }
+    const publishedAt = new Date(`${ANNOUNCEMENT_PUBLISHED_AT}T00:00:00`);
+    const isCurrent = Date.now() < publishedAt.getTime() + 7 * 24 * 60 * 60 * 1000;
+    nodes.announcement.hidden = !isCurrent || dismissed.includes("tanomeru-2026-07");
+  }
 
   function readForm() {
     return {
@@ -302,8 +419,11 @@ function initCalculator() {
       itemName: fields.itemName.value.trim(),
       salePrice: parseAmount(fields.salePrice.value),
       purchasePrice: parseAmount(fields.purchasePrice.value),
-      shipping: parseAmount(fields.shipping.value),
-      storeName: fields.storeName.value.trim(),
+      shipping: parseAmount(
+        shippingMethod === TANOMERU_METHOD ? fields.tanomeruSize.value : fields.shipping.value,
+      ),
+      store: fields.store.value.trim() || null,
+      method: shippingMethod,
     };
   }
 
@@ -313,7 +433,9 @@ function initCalculator() {
     fields.salePrice.value = "";
     fields.purchasePrice.value = "";
     fields.shipping.value = "";
-    fields.storeName.value = "";
+    fields.tanomeruSize.value = "";
+    fields.store.value = "";
+    shippingMethod = null;
     editingId = null;
     nodes.editBanner.hidden = true;
     renderCalculator();
@@ -325,8 +447,10 @@ function initCalculator() {
     fields.itemName.value = record.itemName || "";
     fields.salePrice.value = record.salePrice ?? "";
     fields.purchasePrice.value = record.purchasePrice ?? "";
-    fields.shipping.value = record.shipping ?? "";
-    fields.storeName.value = record.storeName || "";
+    shippingMethod = record.method === TANOMERU_METHOD ? TANOMERU_METHOD : null;
+    fields.shipping.value = shippingMethod ? "" : record.shipping ?? "";
+    fields.tanomeruSize.value = shippingMethod ? String(record.shipping ?? "") : "";
+    fields.store.value = record.store || "";
     nodes.editBanner.hidden = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
     renderCalculator();
@@ -335,15 +459,18 @@ function initCalculator() {
   function renderCalculator() {
     const values = readForm();
     const profit = estimateProfit(values);
-    const breakEven = calculateBreakEven(values.purchasePrice, values.shipping);
+    const breakEven = calculateBreakEven(values.purchasePrice, values.shipping, values.method);
     const margin = profit !== null && values.salePrice ? Math.round((profit / values.salePrice) * 100) : null;
     const hasInput = Boolean(
       fields.itemName.value ||
         fields.salePrice.value ||
         fields.purchasePrice.value ||
         fields.shipping.value ||
-        fields.storeName.value,
+        fields.tanomeruSize.value ||
+        fields.store.value,
     );
+
+    renderShippingMode();
 
     nodes.saveButton.disabled = profit === null;
     nodes.saveButton.textContent = editingId ? "更新する" : "この内容を保存する";
@@ -360,7 +487,10 @@ function initCalculator() {
     if (breakEven === null) {
       nodes.breakEven.className = "muted-value";
       nodes.breakEven.textContent = "仕入値を入れてね";
-      nodes.breakEvenNote.textContent = "仕入値と送料から、10%手数料込みで自動計算します。";
+      nodes.breakEvenNote.textContent =
+        values.method === TANOMERU_METHOD
+          ? "仕入値と送料から、たのメル便の手数料込みで自動計算します。"
+          : "仕入値と送料から、10%手数料込みで自動計算します。";
     } else {
       nodes.breakEven.className = "break-even-value";
       nodes.breakEven.textContent = formatYen(breakEven);
@@ -419,10 +549,18 @@ function initCalculator() {
       if (!Array.isArray(importedRecords)) {
         throw new Error("Invalid backup file");
       }
+      const currentIds = new Set(records.map((record) => record.id));
+      const addedCount = importedRecords.filter((record) => record?.id && !currentIds.has(record.id)).length;
       records = mergeImportedRecords(records, importedRecords);
       saveRecords(records);
+      const importedStores = Array.isArray(payload?.stores) ? payload.stores : [];
+      stores = [
+        ...new Set([...stores, ...importedStores, ...records.map((record) => record.store)].filter(Boolean)),
+      ];
+      saveStores(stores);
+      renderStoreSuggestions();
       renderCalculator();
-      window.alert(`${importedRecords.length}件のデータを読み込みました。`);
+      window.alert(`${addedCount}件のデータを読み込みました。`);
     } catch {
       window.alert("読み込みに失敗しました。書き出したバックアップファイルを選んでください。");
     } finally {
@@ -438,6 +576,10 @@ function initCalculator() {
   nodes.saveButton.addEventListener("click", () => {
     const values = readForm();
     if (estimateProfit(values) === null) return;
+    if (values.store) {
+      stores = addStore(values.store);
+      renderStoreSuggestions();
+    }
     records = editingId ? updateRecord(editingId, values) : addRecord(values);
     editingId = null;
     nodes.editBanner.hidden = true;
@@ -449,14 +591,41 @@ function initCalculator() {
 
   nodes.clearButton.addEventListener("click", clearForm);
   nodes.cancelEditButton.addEventListener("click", clearForm);
+  nodes.shippingModeButton.addEventListener("click", () => {
+    shippingMethod = shippingMethod === TANOMERU_METHOD ? null : TANOMERU_METHOD;
+    fields.shipping.value = "";
+    fields.tanomeruSize.value = "";
+    renderCalculator();
+  });
+  nodes.announcementDetailButton.addEventListener("click", () => {
+    nodes.announcementDetail.hidden = !nodes.announcementDetail.hidden;
+    nodes.announcementDetailButton.textContent = nodes.announcementDetail.hidden ? "詳細" : "閉じる";
+  });
+  nodes.announcementDismissButton.addEventListener("click", () => {
+    let dismissed = [];
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(ANNOUNCEMENT_KEY) || "[]");
+      dismissed = Array.isArray(saved) ? saved : [];
+    } catch {
+      dismissed = [];
+    }
+    window.localStorage.setItem(
+      ANNOUNCEMENT_KEY,
+      JSON.stringify([...new Set([...dismissed, "tanomeru-2026-07"])]),
+    );
+    nodes.announcement.hidden = true;
+  });
   nodes.exportBackupButton.addEventListener("click", () => exportBackup(records));
   nodes.exportCsvButton.addEventListener("click", () => exportCsv(records));
   nodes.importBackupInput.addEventListener("change", () => importBackupFile(nodes.importBackupInput.files?.[0]));
+  renderStoreSuggestions();
+  initAnnouncement();
   renderCalculator();
 }
 
 function initCalendar() {
   let records = loadRecords();
+  let stores = loadStores();
   const [todayYear, todayMonth] = todayJst().split("-").map(Number);
   let year = todayYear;
   let month = todayMonth;
@@ -476,6 +645,20 @@ function initCalendar() {
     prevMonth: document.querySelector("#prevMonth"),
     nextMonth: document.querySelector("#nextMonth"),
   };
+
+  const storeSuggestions = document.createElement("datalist");
+  storeSuggestions.id = "calendarStoreSuggestions";
+  document.body.append(storeSuggestions);
+
+  function renderStoreSuggestions() {
+    storeSuggestions.replaceChildren(
+      ...stores.map((store) => {
+        const option = document.createElement("option");
+        option.value = store;
+        return option;
+      }),
+    );
+  }
 
   function recordsByDate() {
     const currentMonth = monthKey(year, month);
@@ -556,7 +739,7 @@ function initCalendar() {
           openDate = key;
           renderCalendar();
           window.setTimeout(() => {
-            document.querySelector(`#day-${key}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            document.querySelector(`#day-${key}`)?.scrollIntoView({ behavior: "auto", block: "start" });
           }, 20);
         });
       }
@@ -645,6 +828,12 @@ function initCalendar() {
 
     const item = document.createElement("div");
     item.className = "record-card edit-card";
+    item.dataset.method = record.method === TANOMERU_METHOD ? TANOMERU_METHOD : "normal";
+    const isTanomeru = item.dataset.method === TANOMERU_METHOD;
+    const sizeOptions = TANOMERU_SIZES.map(
+      ({ size, fee }) =>
+        `<option value="${fee}" ${Number(record.shipping) === fee ? "selected" : ""}>${size} ¥${fee.toLocaleString("ja-JP")}</option>`,
+    ).join("");
     item.innerHTML = `
       <label class="field small-field">
         <span>品名</span>
@@ -652,7 +841,7 @@ function initCalendar() {
       </label>
       <label class="field small-field">
         <span>店舗名</span>
-        <input class="edit-store" type="text" value="${escapeHtml(record.storeName || "")}" placeholder="店舗名" />
+        <input class="edit-store" type="text" list="calendarStoreSuggestions" value="${escapeHtml(record.store || "")}" placeholder="店舗名" />
       </label>
       <div class="field-grid three">
         <label class="field small-field">
@@ -665,24 +854,56 @@ function initCalendar() {
         </label>
         <label class="field small-field">
           <span>送料</span>
-          <input class="edit-shipping" type="number" inputmode="numeric" value="${record.shipping ?? ""}" />
+          <input class="edit-shipping" type="number" inputmode="numeric" value="${isTanomeru ? "" : record.shipping ?? ""}" ${isTanomeru ? "hidden" : ""} />
+          <select class="edit-shipping-select" aria-label="たのメル便のサイズ" ${isTanomeru ? "" : "hidden"}>
+            <option value="">サイズ</option>
+            ${sizeOptions}
+          </select>
         </label>
       </div>
+      <button class="shipping-mode-button compact ${isTanomeru ? "active" : ""}" type="button">
+        ${isTanomeru ? "🚚 たのメル便で計算中（タップで戻す）" : "🚚 たのメル便で送る場合はタップ"}
+      </button>
       <div class="form-actions">
         <button class="mini-button strong save-edit" type="button">保存する</button>
         <button class="mini-button ghost cancel-edit" type="button">やめる</button>
       </div>
     `;
 
+    const shippingInput = item.querySelector(".edit-shipping");
+    const shippingSelect = item.querySelector(".edit-shipping-select");
+    const shippingToggle = item.querySelector(".shipping-mode-button");
+
+    shippingToggle.addEventListener("click", () => {
+      const nextMethod = item.dataset.method === TANOMERU_METHOD ? "normal" : TANOMERU_METHOD;
+      item.dataset.method = nextMethod;
+      const nextIsTanomeru = nextMethod === TANOMERU_METHOD;
+      shippingInput.value = "";
+      shippingSelect.value = "";
+      shippingInput.hidden = nextIsTanomeru;
+      shippingSelect.hidden = !nextIsTanomeru;
+      shippingToggle.classList.toggle("active", nextIsTanomeru);
+      shippingToggle.textContent = nextIsTanomeru
+        ? "🚚 たのメル便で計算中（タップで戻す）"
+        : "🚚 たのメル便で送る場合はタップ";
+    });
+
     item.querySelector(".save-edit").addEventListener("click", () => {
+      const method = item.dataset.method === TANOMERU_METHOD ? TANOMERU_METHOD : null;
+      const store = item.querySelector(".edit-store").value.trim();
       records = updateRecord(record.id, {
         date: record.date,
         itemName: item.querySelector(".edit-name").value.trim(),
         salePrice: parseAmount(item.querySelector(".edit-sale").value),
         purchasePrice: parseAmount(item.querySelector(".edit-purchase").value),
-        shipping: parseAmount(item.querySelector(".edit-shipping").value),
-        storeName: item.querySelector(".edit-store").value.trim(),
+        shipping: parseAmount(method ? shippingSelect.value : shippingInput.value),
+        store: store || null,
+        method,
       });
+      if (store) {
+        stores = addStore(store);
+        renderStoreSuggestions();
+      }
       editingId = null;
       renderCalendar();
     });
@@ -717,6 +938,7 @@ function initCalendar() {
     renderCalendar();
   });
 
+  renderStoreSuggestions();
   renderCalendar();
 }
 
