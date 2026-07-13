@@ -72,7 +72,7 @@ const output = {
   monthEndStockCount: document.querySelector("#monthEndStockCount"),
   monthlyCost: document.querySelector("#monthlyCost"),
   monthlyAverageProfit: document.querySelector("#monthlyAverageProfit"),
-  monthlyRoi: document.querySelector("#monthlyRoi"),
+  monthlyMargin: document.querySelector("#monthlyMargin"),
   inventoryBody: document.querySelector("#inventoryBody"),
   emptyState: document.querySelector("#emptyState"),
 };
@@ -529,7 +529,7 @@ function renderSummary() {
   const monthlyCost = monthlyItems.reduce((sum, item) => sum + getCalculations(item).totalCost, 0);
   const monthEndItems = state.items.filter((item) => isStockAtMonthEnd(item, state.selectedMonth));
   const averageProfit = monthlyItems.length ? monthlyProfit / monthlyItems.length : 0;
-  const roi = monthlyCost > 0 ? (monthlyProfit / monthlyCost) * 100 : 0;
+  const monthlyMargin = monthlySales > 0 ? (monthlyProfit / monthlySales) * 100 : 0;
 
   output.summaryMonthInput.value = state.selectedMonth;
   output.stockCount.textContent = numberFormatter.format(activeItems.length);
@@ -540,10 +540,10 @@ function renderSummary() {
   output.monthEndStockCount.textContent = numberFormatter.format(monthEndItems.length);
   output.monthlyCost.textContent = formatYen(monthlyCost);
   output.monthlyAverageProfit.textContent = formatYen(averageProfit);
-  output.monthlyRoi.textContent = `${percentFormatter.format(roi)}%`;
+  output.monthlyMargin.textContent = `${percentFormatter.format(monthlyMargin)}%`;
   output.monthlyProfit.classList.toggle("loss-text", monthlyProfit < 0);
   output.monthlyAverageProfit.classList.toggle("loss-text", averageProfit < 0);
-  output.monthlyRoi.classList.toggle("loss-text", roi < 0);
+  output.monthlyMargin.classList.toggle("loss-text", monthlyMargin < 0);
 }
 
 function renderInventory() {
