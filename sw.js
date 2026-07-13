@@ -1,4 +1,4 @@
-const cacheName = "sedori-profit-calculator-v14";
+const cacheName = "sedori-profit-calculator-v15";
 const cachePrefix = "sedori-profit-calculator-";
 const assets = [
   "./",

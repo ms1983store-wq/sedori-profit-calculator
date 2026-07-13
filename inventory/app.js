@@ -5,6 +5,7 @@ const defaultFeeRate = 10;
 const feeRateOptions = [10, 5];
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち"]);
 const statusOptions = ["出品前", "出品中", "売却済み", "発送準備", "評価待ち"];
+const tanomeruShippingMethod = "tanomeru";
 const cloudApiUrl = "./api/inventory";
 const cloudSyncIntervalMs = 15000;
 
@@ -123,21 +124,31 @@ function formatYen(value) {
   return yenFormatter.format(Math.round(value || 0));
 }
 
-function calculateFee(price, feeRate) {
-  return Math.ceil(price * (feeRate / 100));
+function calculateFee(price, feeRate, rounding = "ceil") {
+  const fee = price * (feeRate / 100);
+  return rounding === "round" ? Math.round(fee) : Math.ceil(fee);
 }
 
-function calculateBreakEvenPrice(totalCost, feeRate) {
+function calculateBreakEvenPrice(totalCost, feeRate, options = {}) {
   if (totalCost <= 0) return 0;
 
+  const shipping = Number(options.shipping) || 0;
+  const isTanomeru = options.shippingMethod === tanomeruShippingMethod;
+  const rounding = options.feeRounding === "round" ? "round" : "ceil";
   const rate = feeRate / 100;
-  let price = Math.ceil(totalCost / (1 - rate));
+  const feeBearingCost = isTanomeru ? Math.max(0, totalCost - shipping) : totalCost;
+  let price = (isTanomeru ? shipping : 0) + Math.ceil(feeBearingCost / (1 - rate));
 
-  while (price - calculateFee(price, feeRate) < totalCost) {
+  const retainedAfterFee = (salePrice) => {
+    const feeBase = isTanomeru ? salePrice - shipping : salePrice;
+    return salePrice - calculateFee(feeBase, feeRate, rounding);
+  };
+
+  while (retainedAfterFee(price) < totalCost) {
     price += 1;
   }
 
-  while (price > 0 && price - 1 - calculateFee(price - 1, feeRate) >= totalCost) {
+  while (price > 0 && retainedAfterFee(price - 1) >= totalCost) {
     price -= 1;
   }
 
@@ -152,10 +163,17 @@ function getCalculations(item) {
   const feeRate = parseRate(item.feeRate);
   const totalCost = purchasePrice + shipping + packing;
   const hasActualFee = item.actualFee !== null && item.actualFee !== undefined && item.actualFee !== "";
-  const fee = hasActualFee ? Number(item.actualFee) || 0 : calculateFee(salePrice, feeRate);
+  const shippingMethod = item.shippingMethod === tanomeruShippingMethod ? tanomeruShippingMethod : "";
+  const feeRounding = item.feeRounding === "round" ? "round" : "ceil";
+  const feeBase = shippingMethod === tanomeruShippingMethod ? salePrice - shipping : salePrice;
+  const fee = hasActualFee ? Number(item.actualFee) || 0 : calculateFee(feeBase, feeRate, feeRounding);
   const profit = salePrice - fee - totalCost;
   const margin = salePrice > 0 ? (profit / salePrice) * 100 : 0;
-  const breakEven = calculateBreakEvenPrice(totalCost, feeRate);
+  const breakEven = calculateBreakEvenPrice(totalCost, feeRate, {
+    shipping,
+    shippingMethod,
+    feeRounding,
+  });
 
   return { totalCost, fee, profit, margin, breakEven };
 }
@@ -261,6 +279,16 @@ function normalizeStatus(value) {
     return status;
   }
   return status;
+}
+
+function normalizeShippingMethod(value) {
+  const method = String(value || "").trim();
+  return method === tanomeruShippingMethod || method === "たのメル便" ? tanomeruShippingMethod : "";
+}
+
+function normalizeFeeRounding(value) {
+  const rounding = String(value || "").trim();
+  return rounding === "round" || rounding === "四捨五入" ? "round" : "";
 }
 
 function normalizeLedgerNo(value) {
@@ -389,6 +417,8 @@ function normalizeItem(item) {
     shipping: Number(item.shipping) || 0,
     packing: Number(item.packing) || 0,
     feeRate: normalizeFeeRateChoice(item.feeRate),
+    feeRounding: normalizeFeeRounding(item.feeRounding),
+    shippingMethod: normalizeShippingMethod(item.shippingMethod),
     actualFee:
       item.actualFee === null || item.actualFee === undefined || item.actualFee === "" ? null : Number(item.actualFee) || 0,
     category: item.category || "",
@@ -707,8 +737,10 @@ function exportCsv() {
     "仕入れ値",
     "販売価格",
     "送料",
+    "配送",
     "梱包費",
     "手数料率",
+    "手数料端数",
     "手数料実額",
     "損益分岐点",
     "利益",
@@ -731,8 +763,10 @@ function exportCsv() {
       item.purchasePrice,
       item.salePrice,
       item.shipping,
+      item.shippingMethod === tanomeruShippingMethod ? "たのメル便" : "",
       item.packing,
       item.feeRate,
+      item.feeRounding === "round" ? "四捨五入" : "切り上げ",
       item.actualFee ?? "",
       calc.breakEven,
       item.salePrice > 0 ? Math.round(calc.profit) : "",
@@ -858,8 +892,10 @@ function mapInventoryLedgerRows(rows) {
   const purchasePriceColumn = columnIndex(header, ["仕入れ値"], 5);
   const salePriceColumn = columnIndex(header, ["販売価格"], 6);
   const shippingColumn = columnIndex(header, ["送料"], 7);
+  const shippingMethodColumn = columnIndex(header, ["配送", "配送方法"]);
   const packingColumn = columnIndex(header, ["梱包費", "その他経費"], 8);
   const feeRateColumn = columnIndex(header, ["手数料率"], 9);
+  const feeRoundingColumn = columnIndex(header, ["手数料端数", "手数料丸め"]);
   const actualFeeColumn = columnIndex(header, ["手数料実額"]);
   const categoryColumn = columnIndex(header, ["カテゴリ"]);
   const sourceRefColumn = columnIndex(header, ["管理元ID"]);
@@ -878,8 +914,10 @@ function mapInventoryLedgerRows(rows) {
         purchasePrice: parseMoney(row[purchasePriceColumn]),
         salePrice: parseMoney(row[salePriceColumn]),
         shipping: parseMoney(row[shippingColumn]),
+        shippingMethod: shippingMethodColumn >= 0 ? normalizeShippingMethod(row[shippingMethodColumn]) : "",
         packing: parseMoney(row[packingColumn]),
         feeRate: parseRate(row[feeRateColumn]),
+        feeRounding: feeRoundingColumn >= 0 ? normalizeFeeRounding(row[feeRoundingColumn]) : "",
         actualFee: actualFeeColumn >= 0 && row[actualFeeColumn] !== "" ? parseMoney(row[actualFeeColumn]) : null,
         category: categoryColumn >= 0 ? row[categoryColumn] : "",
         sourceRef: sourceRefColumn >= 0 ? row[sourceRefColumn] : "",
@@ -1276,6 +1314,22 @@ window.addEventListener("hashchange", () => {
 
 window.addEventListener("focus", () => {
   pullCloudInventory({ silent: true }).catch(() => {});
+});
+
+window.addEventListener("storage", (event) => {
+  if (event.key !== storageKey || !event.newValue) return;
+
+  try {
+    const incoming = JSON.parse(event.newValue);
+    if (!Array.isArray(incoming)) return;
+    const merged = mergeItemCollections(state.items, incoming);
+    if (serializeItems(merged) === serializeItems(state.items)) return;
+    applyCloudItems(merged);
+    queueCloudSave();
+    showToast("粗利計算の保存内容を反映しました");
+  } catch {
+    // Ignore malformed updates from other tabs.
+  }
 });
 
 document.addEventListener("visibilitychange", () => {

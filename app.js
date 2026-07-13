@@ -1,6 +1,8 @@
 const STORAGE_KEY = "rieki-calc/records/v1";
 const STORES_KEY = "rieki-calc/stores/v1";
 const ANNOUNCEMENT_KEY = "rieki-calc/announce-dismissed/v1";
+const INVENTORY_STORAGE_KEY = "sedori-inventory-ledger:v1";
+const INVENTORY_SOURCE_PREFIX = "粗利計算:";
 const ANNOUNCEMENT_PUBLISHED_AT = "2026-07-09";
 const TANOMERU_METHOD = "tanomeru";
 const BACKUP_VERSION = 1;
@@ -144,6 +146,82 @@ function normalizeRecord(record) {
     store: store || null,
     method: record.method === TANOMERU_METHOD ? TANOMERU_METHOD : null,
   };
+}
+
+function loadInventoryItems() {
+  try {
+    const items = JSON.parse(window.localStorage.getItem(INVENTORY_STORAGE_KEY) || "[]");
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+}
+
+function inventoryMemoForRecord(record) {
+  return [
+    "粗利計算から自動登録",
+    record.store ? `仕入先:${record.store}` : "",
+    record.method === TANOMERU_METHOD ? "配送:たのメル便" : "",
+  ]
+    .filter(Boolean)
+    .join(" / ");
+}
+
+function syncRecordToInventory(record) {
+  if (!record?.id) return { synced: false, reason: "missing-record" };
+
+  const items = loadInventoryItems();
+  const sourceRef = `${INVENTORY_SOURCE_PREFIX}${record.id}`;
+  const generatedId = `rieki-calc-${record.id}`;
+  const existingIndex = items.findIndex((item) => item.id === generatedId || item.sourceRef === sourceRef);
+  const existing = existingIndex >= 0 ? items[existingIndex] : null;
+
+  if (existing && existing.status !== "出品前") {
+    return { synced: false, reason: "inventory-progressed", item: existing };
+  }
+
+  const generatedMemo = inventoryMemoForRecord(record);
+  const existingMemo = String(existing?.memo || "");
+  const memo = !existing || !existingMemo || existingMemo.startsWith("粗利計算から自動登録")
+    ? generatedMemo
+    : existingMemo;
+  const item = {
+    ...existing,
+    id: existing?.id || generatedId,
+    ledgerNo: existing?.ledgerNo || "",
+    name: record.itemName || "（品名なし）",
+    market: existing?.market || "メルカリ",
+    status: "出品前",
+    purchaseDate: record.date || todayJst(),
+    listingDate: existing?.listingDate || "",
+    saleDate: existing?.saleDate || "",
+    purchasePrice: record.purchasePrice ?? 0,
+    salePrice: record.salePrice ?? 0,
+    shipping: record.shipping ?? 0,
+    packing: existing?.packing ?? 0,
+    feeRate: existing?.feeRate ?? 10,
+    feeRounding: "round",
+    shippingMethod: record.method === TANOMERU_METHOD ? TANOMERU_METHOD : "",
+    actualFee: null,
+    category: existing?.category || "",
+    sourceRef,
+    memo,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const next = [...items];
+  if (existingIndex >= 0) {
+    next[existingIndex] = item;
+  } else {
+    next.unshift(item);
+  }
+
+  try {
+    window.localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(next));
+    return { synced: true, created: existingIndex < 0, item };
+  } catch {
+    return { synced: false, reason: "storage-failed" };
+  }
 }
 
 function addRecord(record) {
@@ -580,11 +658,16 @@ function initCalculator() {
       stores = addStore(values.store);
       renderStoreSuggestions();
     }
+    const savedRecordId = editingId;
     records = editingId ? updateRecord(editingId, values) : addRecord(values);
+    const savedRecord = savedRecordId
+      ? records.find((record) => record.id === savedRecordId)
+      : records[0];
+    const inventorySync = syncRecordToInventory(savedRecord);
     editingId = null;
     nodes.editBanner.hidden = true;
     clearForm();
-    nodes.saveButton.textContent = "✓ 保存したよ";
+    nodes.saveButton.textContent = inventorySync.synced ? "✓ 保存・在庫帳に反映したよ" : "✓ 保存したよ";
     window.clearTimeout(savedTimer);
     savedTimer = window.setTimeout(renderCalculator, 1500);
   });
@@ -900,6 +983,7 @@ function initCalendar() {
         store: store || null,
         method,
       });
+      syncRecordToInventory(records.find((candidate) => candidate.id === record.id));
       if (store) {
         stores = addStore(store);
         renderStoreSuggestions();
