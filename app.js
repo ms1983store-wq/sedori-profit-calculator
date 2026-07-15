@@ -7,7 +7,13 @@ const CALCULATOR_INVENTORY_CLOUD_PENDING_KEY = "rieki-calc/inventory-cloud-pendi
 const CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY = "rieki-calc/inventory-cloud-migration/v1";
 const INVENTORY_SOURCE_PREFIX = "粗利計算:";
 const CLOUD_INVENTORY_URL = "https://sedori-profit-calculator.pages.dev/inventory/";
-const CLOUD_INVENTORY_API_URL = `${CLOUD_INVENTORY_URL}api/inventory`;
+const CLOUD_CALCULATOR_URL = "https://sedori-profit-calculator.pages.dev/inventory/calculator/";
+const IS_CLOUD_PAGES_HOST =
+  window.location.hostname === "sedori-profit-calculator.pages.dev" ||
+  window.location.hostname.endsWith(".sedori-profit-calculator.pages.dev");
+const CLOUD_INVENTORY_API_URL = IS_CLOUD_PAGES_HOST
+  ? "/inventory/api/inventory"
+  : `${CLOUD_INVENTORY_URL}api/inventory`;
 const ANNOUNCEMENT_PUBLISHED_AT = "2026-07-09";
 const TANOMERU_METHOD = "tanomeru";
 const BACKUP_VERSION = 1;
@@ -122,8 +128,9 @@ function loadStores() {
   return [...new Set([...savedStores, ...loadRecords().map((record) => record.store)].filter(Boolean))];
 }
 
-function saveStores(stores) {
+function saveStores(stores, options = {}) {
   window.localStorage.setItem(STORES_KEY, JSON.stringify([...new Set(stores.filter(Boolean))]));
+  if (options.cloud !== false) globalThis.SEDORI_CALCULATOR_CLOUD?.markLocalChange();
 }
 
 function addStore(store) {
@@ -135,8 +142,21 @@ function addStore(store) {
   return next;
 }
 
-function saveRecords(records) {
+function saveRecords(records, options = {}) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  if (options.cloud !== false) globalThis.SEDORI_CALCULATOR_CLOUD?.markLocalChange();
+}
+
+function recordUpdatedAt(record) {
+  const saved = Date.parse(record?.updatedAt || "");
+  if (Number.isFinite(saved)) return new Date(saved).toISOString();
+
+  const idTime = Number.parseInt(String(record?.id || "").split("-")[0], 10);
+  if (Number.isFinite(idTime) && idTime > 1_000_000_000_000) return new Date(idTime).toISOString();
+  if (!record?.id) return new Date().toISOString();
+
+  const dateTime = Date.parse(`${record?.date || "1970-01-01"}T00:00:00+09:00`);
+  return new Date(Number.isFinite(dateTime) ? dateTime : 0).toISOString();
 }
 
 function normalizeRecord(record) {
@@ -150,6 +170,7 @@ function normalizeRecord(record) {
     shipping: parseAmount(record.shipping),
     store: store || null,
     method: record.method === TANOMERU_METHOD ? TANOMERU_METHOD : null,
+    updatedAt: recordUpdatedAt(record),
   };
 }
 
@@ -211,7 +232,7 @@ function syncRecordToInventory(record) {
     category: existing?.category || "",
     sourceRef,
     memo,
-    updatedAt: new Date().toISOString(),
+    updatedAt: record.updatedAt || new Date().toISOString(),
   };
 
   const next = [...items];
@@ -224,9 +245,7 @@ function syncRecordToInventory(record) {
   try {
     window.localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(next));
     window.localStorage.setItem(INVENTORY_PENDING_SYNC_KEY, "1");
-    if (window.location.origin !== new URL(CLOUD_INVENTORY_URL).origin) {
-      window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY, "1");
-    }
+    window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY, "1");
     return { synced: true, created: existingIndex < 0, item };
   } catch {
     return { synced: false, reason: "storage-failed" };
@@ -236,27 +255,20 @@ function syncRecordToInventory(record) {
 let calculatorInventorySyncPromise = null;
 
 function prepareCalculatorInventoryCloudMigration() {
-  if (window.location.origin === new URL(CLOUD_INVENTORY_URL).origin) return;
-  if (window.localStorage.getItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY) === "1") return;
-  const hasCalculatorItems = loadInventoryItems().some((item) =>
-    String(item.sourceRef || "").startsWith(INVENTORY_SOURCE_PREFIX),
-  );
-  if (hasCalculatorItems) {
-    window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY, "1");
-  } else {
-    window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY, "1");
-  }
+  if (window.localStorage.getItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY) === "2") return;
+  const records = loadRecords();
+  records.forEach((record) => syncRecordToInventory(record));
+  if (records.length) window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY, "1");
 }
 
 async function flushCalculatorInventoryToCloud() {
-  if (window.location.origin === new URL(CLOUD_INVENTORY_URL).origin) return true;
   if (window.localStorage.getItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY) !== "1") return true;
   if (calculatorInventorySyncPromise) return calculatorInventorySyncPromise;
 
   const items = loadInventoryItems().filter((item) => String(item.sourceRef || "").startsWith(INVENTORY_SOURCE_PREFIX));
   if (!items.length) {
     window.localStorage.removeItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY);
-    window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY, "1");
+    window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY, "2");
     return true;
   }
 
@@ -273,7 +285,7 @@ async function flushCalculatorInventoryToCloud() {
     .then((response) => {
       if (!response.ok) throw new Error(`Cloud inventory sync failed: ${response.status}`);
       window.localStorage.removeItem(CALCULATOR_INVENTORY_CLOUD_PENDING_KEY);
-      window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY, "1");
+      window.localStorage.setItem(CALCULATOR_INVENTORY_CLOUD_MIGRATION_KEY, "2");
       return true;
     })
     .catch(() => false)
@@ -288,12 +300,8 @@ function configureInventoryNavigation() {
   const link = document.querySelector("[data-inventory-link]");
   if (!link || !/^https?:$/.test(window.location.protocol)) return;
 
-  const calculatorUrl = new URL("./", window.location.href);
-  calculatorUrl.search = "";
-  calculatorUrl.hash = "";
-
   const inventoryUrl = new URL(CLOUD_INVENTORY_URL);
-  inventoryUrl.searchParams.set("return", calculatorUrl.href);
+  inventoryUrl.searchParams.set("return", CLOUD_CALCULATOR_URL);
   link.href = inventoryUrl.href;
 
   link.addEventListener("click", (event) => {
@@ -314,6 +322,7 @@ function addRecord(record) {
     {
       ...normalized,
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      updatedAt: new Date().toISOString(),
     },
     ...records,
   ];
@@ -401,12 +410,15 @@ function mergeImportedRecords(currentRecords, importedRecords) {
 }
 
 function updateRecord(id, patch) {
-  const next = loadRecords().map((record) => (record.id === id ? { ...record, ...patch } : record));
+  const next = loadRecords().map((record) =>
+    record.id === id ? normalizeRecord({ ...record, ...patch, updatedAt: new Date().toISOString() }) : record,
+  );
   saveRecords(next);
   return next;
 }
 
 function deleteRecord(id) {
+  globalThis.SEDORI_CALCULATOR_CLOUD?.markDeleted(id);
   const next = loadRecords().filter((record) => record.id !== id);
   saveRecords(next);
   return next;
@@ -747,11 +759,15 @@ function initCalculator() {
       ? records.find((record) => record.id === savedRecordId)
       : records[0];
     const inventorySync = syncRecordToInventory(savedRecord);
-    flushCalculatorInventoryToCloud();
+    const inventoryCloudSync = flushCalculatorInventoryToCloud();
     editingId = null;
     nodes.editBanner.hidden = true;
     clearForm();
-    nodes.saveButton.textContent = inventorySync.synced ? "✓ 保存・在庫帳に反映したよ" : "✓ 保存したよ";
+    nodes.saveButton.textContent = inventorySync.synced ? "保存済み・在庫帳へ同期中" : "✓ 保存したよ";
+    inventoryCloudSync.then((synced) => {
+      if (!inventorySync.synced) return;
+      nodes.saveButton.textContent = synced ? "✓ 保存・在庫帳に反映したよ" : "保存済み・同期を再試行します";
+    });
     window.clearTimeout(savedTimer);
     savedTimer = window.setTimeout(renderCalculator, 1500);
   });
@@ -785,6 +801,14 @@ function initCalculator() {
   nodes.exportBackupButton.addEventListener("click", () => exportBackup(records));
   nodes.exportCsvButton.addEventListener("click", () => exportCsv(records));
   nodes.importBackupInput.addEventListener("change", () => importBackupFile(nodes.importBackupInput.files?.[0]));
+  window.addEventListener("rieki-calc:cloud-state", () => {
+    records = loadRecords();
+    stores = loadStores();
+    prepareCalculatorInventoryCloudMigration();
+    flushCalculatorInventoryToCloud();
+    renderStoreSuggestions();
+    renderCalculator();
+  });
   renderStoreSuggestions();
   initAnnouncement();
   renderCalculator();
@@ -1068,6 +1092,7 @@ function initCalendar() {
         method,
       });
       syncRecordToInventory(records.find((candidate) => candidate.id === record.id));
+      flushCalculatorInventoryToCloud();
       if (store) {
         stores = addStore(store);
         renderStoreSuggestions();
@@ -1106,16 +1131,19 @@ function initCalendar() {
     renderCalendar();
   });
 
+  window.addEventListener("rieki-calc:cloud-state", () => {
+    records = loadRecords();
+    stores = loadStores();
+    prepareCalculatorInventoryCloudMigration();
+    flushCalculatorInventoryToCloud();
+    renderStoreSuggestions();
+    renderCalendar();
+  });
   renderStoreSuggestions();
   renderCalendar();
 }
 
-prepareCalculatorInventoryCloudMigration();
 configureInventoryNavigation();
-flushCalculatorInventoryToCloud();
-
-window.addEventListener("online", () => flushCalculatorInventoryToCloud());
-window.addEventListener("focus", () => flushCalculatorInventoryToCloud());
 
 if (document.body.dataset.page === "calculator") {
   initCalculator();
@@ -1124,6 +1152,12 @@ if (document.body.dataset.page === "calculator") {
 if (document.body.dataset.page === "calendar") {
   initCalendar();
 }
+
+prepareCalculatorInventoryCloudMigration();
+flushCalculatorInventoryToCloud();
+
+window.addEventListener("online", () => flushCalculatorInventoryToCloud());
+window.addEventListener("focus", () => flushCalculatorInventoryToCloud());
 
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   window.addEventListener("load", () => {

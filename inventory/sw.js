@@ -1,4 +1,4 @@
-const cacheName = "sedori-inventory-ledger-v32";
+const cacheName = "sedori-inventory-ledger-v33";
 const cachePrefix = "sedori-inventory-ledger-";
 const assets = [
   "./",

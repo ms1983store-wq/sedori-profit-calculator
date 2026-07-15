@@ -10,7 +10,7 @@
     />
     <title>概算 粗利計算</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=17" />
+    <link rel="stylesheet" href="./styles.css?v=18" />
   </head>
   <body data-page="calculator">
     <main class="page-shell">
@@ -27,6 +27,10 @@
           </nav>
         </header>
         <p class="lead">売値・仕入値・送料を入れると、だいたいの粗利が出るよ</p>
+        <div class="calculator-sync-status" id="calculatorCloudStatus" data-state="checking" role="status" aria-live="polite">
+          <span class="calculator-sync-dot" aria-hidden="true"></span>
+          <span id="calculatorCloudStatusText">クラウドへ接続中</span>
+        </div>
 
         <aside class="announcement" id="announcement" aria-labelledby="announcementTitle" hidden>
           <div class="announcement-heading">
@@ -153,7 +157,7 @@
             <li>「ファイル」アプリから、保存したバックアップを選ぶ</li>
           </ol>
           <p class="backup-warning">
-            ⚠️ ホーム画面のアイコンを削除すると、中の記録も一緒に消えます。消したり入れ替えたりする前に、必ず「書き出す」でバックアップを！
+            クラウド同期済みの履歴は別の端末でも復元されます。「同期済み」と表示されたことを確認してから、ホーム画面のアイコンを入れ替えてください。
           </p>
           <div class="backup-actions">
             <button type="button" id="exportBackupButton">書き出す</button>
@@ -170,12 +174,12 @@
         </section>
 
         <p class="privacy-note">
-          入力した内容は、あなたのこの端末（ブラウザ）の中だけに保存されます。<br />
-          他の人には共有されません。
+          入力した内容はログイン中のクラウドへ保存され、スマホとPCで同期されます。
         </p>
       </div>
     </main>
 
-    <script src="./app.js?v=17" defer></script>
+    <script src="./cloud-sync.js?v=1" defer></script>
+    <script src="./app.js?v=18" defer></script>
   </body>
 </html>

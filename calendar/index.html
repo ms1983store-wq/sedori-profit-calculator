@@ -10,7 +10,7 @@
     />
     <title>概算 粗利計算</title>
     <link rel="manifest" href="../manifest.webmanifest" />
-    <link rel="stylesheet" href="../styles.css?v=17" />
+    <link rel="stylesheet" href="../styles.css?v=18" />
   </head>
   <body data-page="calendar">
     <main class="calendar-shell">
@@ -20,6 +20,11 @@
             <h1>🗓 カレンダー</h1>
             <a class="nav-pill" href="../">🧮 計算にもどる</a>
           </header>
+
+          <div class="calculator-sync-status" id="calculatorCloudStatus" data-state="checking" role="status" aria-live="polite">
+            <span class="calculator-sync-dot" aria-hidden="true"></span>
+            <span id="calculatorCloudStatusText">クラウドへ接続中</span>
+          </div>
 
           <div class="month-nav">
             <button class="month-button" type="button" id="prevMonth">← 前月</button>
@@ -64,10 +69,11 @@
         <h2 class="section-title">日にちごとの一覧</h2>
         <ul class="day-list" id="dayList"></ul>
 
-        <p class="privacy-note">記録はこの端末（ブラウザ）の中だけに保存されています。</p>
+        <p class="privacy-note">記録はログイン中のクラウドへ保存され、スマホとPCで同期されます。</p>
       </div>
     </main>
 
-    <script src="../app.js?v=17" defer></script>
+    <script src="../cloud-sync.js?v=1" defer></script>
+    <script src="../app.js?v=18" defer></script>
   </body>
 </html>

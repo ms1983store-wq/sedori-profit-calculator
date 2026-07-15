@@ -12,7 +12,7 @@ const tanomeruShippingMethod = "tanomeru";
 const cloudApiUrl = "./api/inventory";
 const cloudSyncIntervalMs = 15000;
 const canonicalCloudInventoryUrl = "https://sedori-profit-calculator.pages.dev/inventory/";
-const githubCalculatorUrl = "https://ms1983store-wq.github.io/sedori-profit-calculator/";
+const cloudCalculatorUrl = "https://sedori-profit-calculator.pages.dev/inventory/calculator/";
 const isCloudSyncHost =
   window.location.hostname === "sedori-profit-calculator.pages.dev" ||
   window.location.hostname.endsWith(".sedori-profit-calculator.pages.dev");
@@ -218,15 +218,15 @@ function normalizeCalculatorReturnUrl(value) {
     if (url.protocol !== "https:" && url.protocol !== "http:") return "";
 
     if (url.origin === "https://sedori-profit-calculator.pages.dev") {
-      return `${url.origin}/`;
+      return cloudCalculatorUrl;
     }
 
     if (url.origin === "https://ms1983store-wq.github.io" && url.pathname.startsWith("/sedori-profit-calculator/")) {
-      return githubCalculatorUrl;
+      return cloudCalculatorUrl;
     }
 
     if (url.origin === "https://rieki-calc.hachi-ribe.workers.dev") {
-      return `${url.origin}/`;
+      return cloudCalculatorUrl;
     }
 
     if (["localhost", "127.0.0.1"].includes(url.hostname)) {
@@ -244,7 +244,7 @@ function configureCalculatorBackLink() {
   const requested = normalizeCalculatorReturnUrl(params.get("return"));
   const referrer = normalizeCalculatorReturnUrl(document.referrer);
   const saved = normalizeCalculatorReturnUrl(localStorage.getItem(calculatorReturnStorageKey));
-  const target = requested || referrer || saved || githubCalculatorUrl;
+  const target = requested || referrer || saved || cloudCalculatorUrl;
 
   if (requested || referrer) {
     localStorage.setItem(calculatorReturnStorageKey, target);
