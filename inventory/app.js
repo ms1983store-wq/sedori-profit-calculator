@@ -129,9 +129,11 @@ function normalizeFeeRateChoice(value) {
   );
 }
 
-function formatInput(value) {
-  const amount = parseMoney(value);
-  return amount ? numberFormatter.format(amount) : "";
+function formatInput(value, allowZero = false) {
+  const normalized = String(value).replace(/[^\d]/g, "");
+  if (!normalized) return "";
+  const amount = Number(normalized);
+  return amount || allowZero ? numberFormatter.format(amount) : "";
 }
 
 function formatYen(value) {
@@ -412,7 +414,7 @@ function readForm() {
 
 function setMoneyInputs() {
   [fields.purchasePrice, fields.salePrice, fields.shipping, fields.packing].forEach((input) => {
-    input.value = formatInput(input.value);
+    input.value = formatInput(input.value, input === fields.purchasePrice);
   });
 }
 
@@ -447,7 +449,7 @@ function fillForm(item) {
   fields.purchaseDate.value = item.purchaseDate || "";
   fields.listingDate.value = item.listingDate || "";
   fields.saleDate.value = item.saleDate || "";
-  fields.purchasePrice.value = formatInput(item.purchasePrice);
+  fields.purchasePrice.value = formatInput(item.purchasePrice, true);
   fields.salePrice.value = formatInput(item.salePrice);
   fields.shipping.value = formatInput(item.shipping);
   fields.packing.value = formatInput(item.packing);
@@ -1432,7 +1434,7 @@ function closePasteDialog() {
 [fields.purchasePrice, fields.salePrice, fields.shipping, fields.packing].forEach((input) => {
   input.addEventListener("input", () => {
     const cursorAtEnd = input.selectionStart === input.value.length;
-    input.value = formatInput(input.value);
+    input.value = formatInput(input.value, input === fields.purchasePrice);
     if (cursorAtEnd) {
       input.setSelectionRange(input.value.length, input.value.length);
     }
