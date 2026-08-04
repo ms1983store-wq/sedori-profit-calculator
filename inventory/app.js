@@ -781,7 +781,18 @@ function applyStatusDates(item, previousStatus = "") {
 }
 
 function renderFilters() {
+  const counts = new Map(statusOptions.map((status) => [status, 0]));
+  state.items.forEach((item) => {
+    counts.set(item.status, (counts.get(item.status) || 0) + 1);
+  });
+
   controls.statusFilters.querySelectorAll(".filter-chip").forEach((button) => {
+    const status = button.dataset.status;
+    const count = status === "all" ? state.items.length : counts.get(status) || 0;
+    const label = button.querySelector(".filter-label")?.textContent || status;
+    const countOutput = button.querySelector(".filter-count");
+    if (countOutput) countOutput.textContent = numberFormatter.format(count);
+    button.setAttribute("aria-label", `${label} ${numberFormatter.format(count)}件`);
     button.classList.toggle("active", button.dataset.status === state.filterStatus);
   });
 }

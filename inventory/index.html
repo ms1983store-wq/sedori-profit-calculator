@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=29" />
+    <link rel="stylesheet" href="./styles.css?v=36" />
   </head>
   <body>
     <main class="app-shell">
@@ -291,12 +291,24 @@
           </div>
 
           <div class="filter-row" id="statusFilters" aria-label="状態フィルター">
-            <button type="button" class="filter-chip active" data-status="all">すべて</button>
-            <button type="button" class="filter-chip" data-status="出品前">出品前</button>
-            <button type="button" class="filter-chip" data-status="出品中">出品中</button>
-            <button type="button" class="filter-chip" data-status="売却済み">売却済み</button>
-            <button type="button" class="filter-chip" data-status="発送準備">発送準備</button>
-            <button type="button" class="filter-chip" data-status="評価待ち">評価待ち</button>
+            <button type="button" class="filter-chip active" data-status="all">
+              <span class="filter-label">すべて</span><span class="filter-count">0</span>
+            </button>
+            <button type="button" class="filter-chip" data-status="出品前">
+              <span class="filter-label">出品前</span><span class="filter-count">0</span>
+            </button>
+            <button type="button" class="filter-chip" data-status="出品中">
+              <span class="filter-label">出品中</span><span class="filter-count">0</span>
+            </button>
+            <button type="button" class="filter-chip" data-status="売却済み">
+              <span class="filter-label">売却済み</span><span class="filter-count">0</span>
+            </button>
+            <button type="button" class="filter-chip" data-status="発送準備">
+              <span class="filter-label">発送準備</span><span class="filter-count">0</span>
+            </button>
+            <button type="button" class="filter-chip" data-status="評価待ち">
+              <span class="filter-label">評価待ち</span><span class="filter-count">0</span>
+            </button>
           </div>
 
           <div class="table-wrap">
@@ -345,6 +357,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=34" defer></script>
+    <script src="./app.js?v=36" defer></script>
   </body>
 </html>

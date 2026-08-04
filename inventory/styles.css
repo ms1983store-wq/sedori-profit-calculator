@@ -568,6 +568,10 @@ select:focus,
   --status-color: #5b6460;
   --status-bg: #edf1ee;
   --status-border: #d5ded8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   flex: 0 0 auto;
   min-height: 36px;
   border: 1px solid var(--status-border);
@@ -580,10 +584,29 @@ select:focus,
   white-space: nowrap;
 }
 
+.filter-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--status-border);
+  border-radius: 999px;
+  color: var(--status-color);
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
 .filter-chip.active {
   border-color: var(--status-color);
   color: #fff;
   background: var(--status-color);
+}
+
+.filter-chip.active .filter-count {
+  border-color: #fff;
+  background: #fff;
 }
 
 .filter-chip[data-status="all"] {
