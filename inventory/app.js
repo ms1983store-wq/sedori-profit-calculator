@@ -56,6 +56,7 @@ const fields = {
   id: document.querySelector("#itemId"),
   ledgerNo: document.querySelector("#ledgerNoInput"),
   name: document.querySelector("#nameInput"),
+  imageUrl: document.querySelector("#imageUrlInput"),
   markets: Array.from(document.querySelectorAll('input[name="marketplace"]')),
   status: document.querySelector("#statusInput"),
   purchaseDate: document.querySelector("#purchaseDateInput"),
@@ -89,6 +90,8 @@ const output = {
   cloudSyncStatus: document.querySelector("#cloudSyncStatus"),
   cloudSyncStatusText: document.querySelector("#cloudSyncStatusText"),
   marketSummary: document.querySelector("#marketSummary"),
+  formPhotoImage: document.querySelector("#formPhotoImage"),
+  formPhotoEmpty: document.querySelector("#formPhotoEmpty"),
 };
 
 const controls = {
@@ -141,6 +144,18 @@ function formatInput(value, allowZero = false) {
 
 function formatYen(value) {
   return yenFormatter.format(Math.round(value || 0));
+}
+
+function normalizeImageUrl(value) {
+  const input = String(value || "").trim();
+  if (!input) return "";
+
+  try {
+    const url = new URL(input);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : "";
+  } catch {
+    return "";
+  }
 }
 
 function calculateFee(price, feeRate, rounding = "ceil") {
@@ -440,6 +455,7 @@ function readForm() {
     id: fields.id.value || createId(),
     ledgerNo: normalizeLedgerNo(fields.ledgerNo.value),
     name: fields.name.value.trim(),
+    imageUrl: normalizeImageUrl(fields.imageUrl.value),
     market: markets[0] || "",
     markets,
     status: fields.status.value,
@@ -454,6 +470,21 @@ function readForm() {
     memo: fields.memo.value.trim(),
     updatedAt: new Date().toISOString(),
   };
+}
+
+function updateFormPhotoPreview() {
+  const imageUrl = normalizeImageUrl(fields.imageUrl.value);
+  output.formPhotoImage.hidden = !imageUrl;
+  output.formPhotoEmpty.hidden = Boolean(imageUrl);
+
+  if (!imageUrl) {
+    output.formPhotoImage.removeAttribute("src");
+    output.formPhotoImage.alt = "";
+    return;
+  }
+
+  output.formPhotoImage.src = imageUrl;
+  output.formPhotoImage.alt = fields.name.value.trim() ? `${fields.name.value.trim()}の写真` : "商品写真";
 }
 
 function setMoneyInputs() {
@@ -477,11 +508,13 @@ function resetForm(options = {}) {
   form.reset();
   fields.id.value = "";
   fields.ledgerNo.value = "";
+  fields.imageUrl.value = "";
   fields.purchaseDate.value = today();
   fields.feeRate.value = defaultFeeRate;
   controls.marketPicker.open = false;
   updateMarketSummary();
   output.formTitle.textContent = "商品登録";
+  updateFormPhotoPreview();
   updateFormPreview();
   if (focus) fields.name.focus();
 }
@@ -490,6 +523,7 @@ function fillForm(item) {
   fields.id.value = item.id;
   fields.ledgerNo.value = item.ledgerNo || "";
   fields.name.value = item.name;
+  fields.imageUrl.value = item.imageUrl || "";
   setFormMarkets(item.markets ?? item.market ?? "メルカリ");
   controls.marketPicker.open = false;
   fields.status.value = normalizeStatus(item.status);
@@ -503,6 +537,7 @@ function fillForm(item) {
   fields.feeRate.value = normalizeFeeRateChoice(item.feeRate);
   fields.memo.value = item.memo || "";
   output.formTitle.textContent = "商品編集";
+  updateFormPhotoPreview();
   updateFormPreview();
   switchView("entry");
   fields.name.focus();
@@ -592,6 +627,7 @@ function normalizeItem(item) {
     id: item.id || createId(),
     ledgerNo,
     name: item.name || "",
+    imageUrl: normalizeImageUrl(item.imageUrl ?? item.photoUrl ?? item.thumbnailUrl),
     market: markets[0],
     markets,
     status: normalizeStatus(item.status),
@@ -766,6 +802,42 @@ function createMarketBadge(market) {
   return badge;
 }
 
+function createItemPhoto(item) {
+  const imageUrl = normalizeImageUrl(item.imageUrl);
+  if (!imageUrl) {
+    const empty = document.createElement("span");
+    empty.className = "item-photo item-photo-empty";
+    empty.textContent = "写真なし";
+    return empty;
+  }
+
+  const link = document.createElement("a");
+  link.className = "item-photo";
+  link.href = imageUrl;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.setAttribute("aria-label", `${item.name}の写真を開く`);
+
+  const image = document.createElement("img");
+  image.src = imageUrl;
+  image.alt = `${item.name}の写真`;
+  image.loading = "lazy";
+  image.decoding = "async";
+  image.referrerPolicy = "no-referrer";
+  image.addEventListener(
+    "error",
+    () => {
+      const empty = document.createElement("span");
+      empty.className = "item-photo item-photo-empty";
+      empty.textContent = "写真なし";
+      link.replaceWith(empty);
+    },
+    { once: true },
+  );
+  link.append(image);
+  return link;
+}
+
 function renderListingGlance(row, item) {
   if (item.status !== "出品中") return;
 
@@ -789,6 +861,7 @@ function createRow(item) {
 
   row.innerHTML = `
     <td class="ledger-no-cell" data-label="No."></td>
+    <td class="photo-cell" data-label="写真"></td>
     <td data-label="商品">
       <div class="item-cell">
         <strong></strong>
@@ -834,6 +907,7 @@ function createRow(item) {
   `;
 
   row.querySelector(".ledger-no-cell").textContent = item.ledgerNo || "-";
+  row.querySelector(".photo-cell").replaceChildren(createItemPhoto(item));
   row.querySelector(".item-cell strong").textContent = item.name;
   const itemMarkets = getItemMarkets(item);
   row.querySelector(".item-cell span").textContent = [
@@ -994,6 +1068,7 @@ function exportCsv() {
   const header = [
     "No.",
     "商品名",
+    "写真URL",
     "販売先",
     "状態",
     "仕入日",
@@ -1020,6 +1095,7 @@ function exportCsv() {
     return [
       item.ledgerNo,
       item.name,
+      item.imageUrl,
       getItemMarkets(item).join("・"),
       item.status,
       item.purchaseDate,
@@ -1149,6 +1225,7 @@ function mapInventoryLedgerRows(rows) {
   const [header = [], ...records] = rows;
   const ledgerNoColumn = columnIndex(header, ["No.", "No", "№", "古物台帳No", "古物台帳№", "台帳No", "台帳№", "番号"]);
   const nameColumn = columnIndex(header, ["商品名"], 0);
+  const imageUrlColumn = columnIndex(header, ["写真URL", "画像URL", "サムネイルURL"]);
   const marketColumn = columnIndex(header, ["販売先"], 1);
   const statusColumn = columnIndex(header, ["状態"], 2);
   const purchaseDateColumn = columnIndex(header, ["仕入日"], 3);
@@ -1171,6 +1248,7 @@ function mapInventoryLedgerRows(rows) {
       normalizeItem({
         ledgerNo: ledgerNoColumn >= 0 ? row[ledgerNoColumn] : "",
         name: row[nameColumn],
+        imageUrl: imageUrlColumn >= 0 ? row[imageUrlColumn] : "",
         markets: normalizeMarkets(row[marketColumn]),
         status: normalizeStatus(row[statusColumn]),
         purchaseDate: normalizeDate(row[purchaseDateColumn]),
@@ -1577,6 +1655,17 @@ function closePasteDialog() {
 
 fields.markets.forEach((input) => {
   input.addEventListener("change", updateMarketSummary);
+});
+
+fields.imageUrl.addEventListener("input", updateFormPhotoPreview);
+fields.imageUrl.addEventListener("change", () => {
+  fields.imageUrl.value = normalizeImageUrl(fields.imageUrl.value);
+  updateFormPhotoPreview();
+});
+fields.name.addEventListener("input", updateFormPhotoPreview);
+output.formPhotoImage.addEventListener("error", () => {
+  output.formPhotoImage.hidden = true;
+  output.formPhotoEmpty.hidden = false;
 });
 
 form.addEventListener("submit", saveItem);
