@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=37" />
+    <link rel="stylesheet" href="./styles.css?v=38" />
   </head>
   <body>
     <main class="app-shell">
@@ -173,17 +173,41 @@
           </div>
 
           <div class="field-row">
-            <label class="field">
-              <span>販売先</span>
-              <select id="marketInput">
-                <option value="メルカリ">メルカリ</option>
-                <option value="ラクマ">ラクマ</option>
-                <option value="Yahoo!フリマ">Yahoo!フリマ</option>
-                <option value="ヤフオク">ヤフオク</option>
-                <option value="Amazon">Amazon</option>
-                <option value="その他">その他</option>
-              </select>
-            </label>
+            <div class="field market-field">
+              <span id="marketPickerLabel">出品先</span>
+              <details class="market-picker" id="marketPicker">
+                <summary aria-labelledby="marketPickerLabel">
+                  <span id="marketSummary">メルカリ</span>
+                  <span class="picker-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="market-menu" id="marketInputs">
+                  <label class="market-choice">
+                    <input type="checkbox" name="marketplace" value="メルカリ" checked />
+                    <span class="market-choice-label" data-market="メルカリ"><span class="market-dot"></span>メルカリ</span>
+                  </label>
+                  <label class="market-choice">
+                    <input type="checkbox" name="marketplace" value="ラクマ" />
+                    <span class="market-choice-label" data-market="ラクマ"><span class="market-dot"></span>ラクマ</span>
+                  </label>
+                  <label class="market-choice">
+                    <input type="checkbox" name="marketplace" value="Yahoo!フリマ" />
+                    <span class="market-choice-label" data-market="Yahoo!フリマ"><span class="market-dot"></span>Yahoo!フリマ</span>
+                  </label>
+                  <label class="market-choice">
+                    <input type="checkbox" name="marketplace" value="ヤフオク" />
+                    <span class="market-choice-label" data-market="ヤフオク"><span class="market-dot"></span>ヤフオク</span>
+                  </label>
+                  <label class="market-choice">
+                    <input type="checkbox" name="marketplace" value="Amazon" />
+                    <span class="market-choice-label" data-market="Amazon"><span class="market-dot"></span>Amazon</span>
+                  </label>
+                  <label class="market-choice">
+                    <input type="checkbox" name="marketplace" value="その他" />
+                    <span class="market-choice-label" data-market="その他"><span class="market-dot"></span>その他</span>
+                  </label>
+                </div>
+              </details>
+            </div>
             <label class="field">
               <span>状態</span>
               <select id="statusInput">
@@ -357,6 +381,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=36" defer></script>
+    <script src="./app.js?v=38" defer></script>
   </body>
 </html>

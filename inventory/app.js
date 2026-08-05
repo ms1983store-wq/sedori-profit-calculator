@@ -8,6 +8,7 @@ const defaultFeeRate = 10;
 const feeRateOptions = [10, 5];
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち"]);
 const statusOptions = ["出品前", "出品中", "売却済み", "発送準備", "評価待ち"];
+const marketOptions = ["メルカリ", "ラクマ", "Yahoo!フリマ", "ヤフオク", "Amazon", "その他"];
 const tanomeruShippingMethod = "tanomeru";
 const cloudApiUrl = "./api/inventory";
 const cloudSyncIntervalMs = 15000;
@@ -55,7 +56,7 @@ const fields = {
   id: document.querySelector("#itemId"),
   ledgerNo: document.querySelector("#ledgerNoInput"),
   name: document.querySelector("#nameInput"),
-  market: document.querySelector("#marketInput"),
+  markets: Array.from(document.querySelectorAll('input[name="marketplace"]')),
   status: document.querySelector("#statusInput"),
   purchaseDate: document.querySelector("#purchaseDateInput"),
   listingDate: document.querySelector("#listingDateInput"),
@@ -87,6 +88,7 @@ const output = {
   emptyState: document.querySelector("#emptyState"),
   cloudSyncStatus: document.querySelector("#cloudSyncStatus"),
   cloudSyncStatusText: document.querySelector("#cloudSyncStatusText"),
+  marketSummary: document.querySelector("#marketSummary"),
 };
 
 const controls = {
@@ -109,6 +111,7 @@ const controls = {
   toast: document.querySelector("#toast"),
   calculatorBackLink: document.querySelector("#calculatorBackLink"),
   cloudInventoryLink: document.querySelector("#cloudInventoryLink"),
+  marketPicker: document.querySelector("#marketPicker"),
 };
 
 function parseMoney(value) {
@@ -356,6 +359,20 @@ function normalizeMarket(value) {
   return market;
 }
 
+function normalizeMarkets(value) {
+  const values = Array.isArray(value)
+    ? value
+    : String(value || "")
+        .split(/\s*(?:[|、,／\/・]|\r?\n)\s*/)
+        .filter(Boolean);
+  const markets = values.map((market) => normalizeMarket(market)).filter(Boolean);
+  return markets.length ? Array.from(new Set(markets)) : ["その他"];
+}
+
+function getItemMarkets(item) {
+  return normalizeMarkets(item?.markets ?? item?.market);
+}
+
 function normalizeStatus(value) {
   const status = String(value || "").trim();
   if (!status || status === "在庫") return "出品中";
@@ -392,12 +409,39 @@ function createId() {
   return `item-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function getSelectedMarkets() {
+  return fields.markets.filter((input) => input.checked).map((input) => input.value);
+}
+
+function updateMarketSummary() {
+  const markets = getSelectedMarkets();
+  if (!markets.length) {
+    output.marketSummary.textContent = "出品先を選択";
+  } else if (markets.length <= 2) {
+    output.marketSummary.textContent = markets.join("・");
+  } else {
+    output.marketSummary.textContent = `${markets[0]}ほか${markets.length - 1}件`;
+  }
+}
+
+function setFormMarkets(value) {
+  const selected = new Set(
+    normalizeMarkets(value).map((market) => (marketOptions.includes(market) ? market : "その他")),
+  );
+  fields.markets.forEach((input) => {
+    input.checked = selected.has(input.value);
+  });
+  updateMarketSummary();
+}
+
 function readForm() {
+  const markets = getSelectedMarkets();
   return {
     id: fields.id.value || createId(),
     ledgerNo: normalizeLedgerNo(fields.ledgerNo.value),
     name: fields.name.value.trim(),
-    market: fields.market.value,
+    market: markets[0] || "",
+    markets,
     status: fields.status.value,
     purchaseDate: fields.purchaseDate.value,
     listingDate: fields.listingDate.value,
@@ -435,6 +479,8 @@ function resetForm(options = {}) {
   fields.ledgerNo.value = "";
   fields.purchaseDate.value = today();
   fields.feeRate.value = defaultFeeRate;
+  controls.marketPicker.open = false;
+  updateMarketSummary();
   output.formTitle.textContent = "商品登録";
   updateFormPreview();
   if (focus) fields.name.focus();
@@ -444,7 +490,8 @@ function fillForm(item) {
   fields.id.value = item.id;
   fields.ledgerNo.value = item.ledgerNo || "";
   fields.name.value = item.name;
-  fields.market.value = normalizeMarket(item.market || "メルカリ");
+  setFormMarkets(item.markets ?? item.market ?? "メルカリ");
+  controls.marketPicker.open = false;
   fields.status.value = normalizeStatus(item.status);
   fields.purchaseDate.value = item.purchaseDate || "";
   fields.listingDate.value = item.listingDate || "";
@@ -539,12 +586,14 @@ function normalizeItem(item) {
   const ledgerNo =
     normalizeLedgerNo(item.ledgerNo ?? item.ledgerNumber ?? item.no ?? item.number ?? item["No."] ?? item["№"]) ||
     ledgerNoFromSourceRef(sourceRef);
+  const markets = normalizeMarkets(item.markets ?? item.market ?? "メルカリ");
 
   return {
     id: item.id || createId(),
     ledgerNo,
     name: item.name || "",
-    market: normalizeMarket(item.market || "メルカリ"),
+    market: markets[0],
+    markets,
     status: normalizeStatus(item.status),
     purchaseDate: item.purchaseDate || "",
     listingDate: item.listingDate || "",
@@ -645,7 +694,7 @@ function getFilteredItems() {
     })
     .filter((item) => {
       if (!keyword) return true;
-      return [item.ledgerNo, item.name, item.market, item.category, item.memo, item.sourceRef].some((value) =>
+      return [item.ledgerNo, item.name, ...getItemMarkets(item), item.category, item.memo, item.sourceRef].some((value) =>
         String(value).toLowerCase().includes(keyword),
       );
     })
@@ -689,6 +738,50 @@ function renderInventory() {
   output.emptyState.hidden = items.length > 0;
 }
 
+function getListingAge(item) {
+  if (item.status !== "出品中" || !item.listingDate) return null;
+  return daysBetween(item.listingDate, today());
+}
+
+function getListingAgeStage(days) {
+  if (days === null) return "unset";
+  if (days >= 28) return "late";
+  if (days >= 14) return "aging";
+  if (days >= 7) return "watch";
+  return "fresh";
+}
+
+function createMarketBadge(market) {
+  const badge = document.createElement("span");
+  badge.className = "market-badge";
+  badge.dataset.market = market;
+  badge.title = market;
+
+  const dot = document.createElement("span");
+  dot.className = "market-dot";
+  dot.setAttribute("aria-hidden", "true");
+  const label = document.createElement("span");
+  label.textContent = market;
+  badge.append(dot, label);
+  return badge;
+}
+
+function renderListingGlance(row, item) {
+  if (item.status !== "出品中") return;
+
+  const glance = row.querySelector(".listing-glance");
+  const marketBadges = row.querySelector(".market-badges");
+  const ageOutput = row.querySelector(".listing-age");
+  const age = getListingAge(item);
+  const ageText = age === null ? "未設定" : `${numberFormatter.format(age)}日`;
+
+  marketBadges.replaceChildren(...getItemMarkets(item).map(createMarketBadge));
+  ageOutput.textContent = ageText;
+  ageOutput.dataset.ageStage = getListingAgeStage(age);
+  ageOutput.setAttribute("aria-label", age === null ? "出品日未設定" : `出品から${ageText}`);
+  glance.hidden = false;
+}
+
 function createRow(item) {
   const calc = getCalculations(item);
   const hasSalePrice = Number(item.salePrice) > 0;
@@ -702,7 +795,15 @@ function createRow(item) {
         <span></span>
       </div>
     </td>
-    <td data-label="状態"><select class="status-badge status-select" aria-label="状態を変更"></select></td>
+    <td data-label="状態">
+      <div class="status-stack">
+        <select class="status-badge status-select" aria-label="状態を変更"></select>
+        <div class="listing-glance" hidden>
+          <div class="market-badges" aria-label="出品先"></div>
+          <span class="listing-age"></span>
+        </div>
+      </div>
+    </td>
     <td class="purchase-price-cell" data-label="仕入れ値"></td>
     <td class="listing-date-cell" data-label="出品日"></td>
     <td class="sale-date-cell" data-label="販売日"></td>
@@ -734,7 +835,14 @@ function createRow(item) {
 
   row.querySelector(".ledger-no-cell").textContent = item.ledgerNo || "-";
   row.querySelector(".item-cell strong").textContent = item.name;
-  row.querySelector(".item-cell span").textContent = [item.market, item.category, item.memo].filter(Boolean).join(" / ");
+  const itemMarkets = getItemMarkets(item);
+  row.querySelector(".item-cell span").textContent = [
+    item.status === "出品中" ? "" : itemMarkets.join("・"),
+    item.category,
+    item.memo,
+  ]
+    .filter(Boolean)
+    .join(" / ");
   const statusSelect = row.querySelector(".status-select");
   statusSelect.replaceChildren(
     ...statusOptions.map((status) => {
@@ -746,6 +854,7 @@ function createRow(item) {
     }),
   );
   statusSelect.dataset.status = item.status;
+  renderListingGlance(row, item);
   row.querySelector(".purchase-price-cell").textContent = formatYen(item.purchasePrice);
   row.querySelector(".listing-date-cell").textContent = item.listingDate || "-";
   row.querySelector(".sale-date-cell").textContent = item.saleDate || "-";
@@ -806,6 +915,12 @@ function render() {
 function saveItem(event) {
   event.preventDefault();
   const formItem = readForm();
+  if (!formItem.markets.length) {
+    controls.marketPicker.open = true;
+    controls.marketPicker.querySelector("summary")?.focus();
+    showToast("出品先を1つ以上選択してください");
+    return;
+  }
   const existing = state.items.find((candidate) => candidate.id === formItem.id);
   const keepActualFee =
     existing && Number(existing.salePrice) === Number(formItem.salePrice) && existing.status === formItem.status;
@@ -905,7 +1020,7 @@ function exportCsv() {
     return [
       item.ledgerNo,
       item.name,
-      item.market,
+      getItemMarkets(item).join("・"),
       item.status,
       item.purchaseDate,
       item.listingDate,
@@ -1056,7 +1171,7 @@ function mapInventoryLedgerRows(rows) {
       normalizeItem({
         ledgerNo: ledgerNoColumn >= 0 ? row[ledgerNoColumn] : "",
         name: row[nameColumn],
-        market: normalizeMarket(row[marketColumn]),
+        markets: normalizeMarkets(row[marketColumn]),
         status: normalizeStatus(row[statusColumn]),
         purchaseDate: normalizeDate(row[purchaseDateColumn]),
         listingDate: listingDateColumn >= 0 ? normalizeDate(row[listingDateColumn]) : "",
@@ -1460,6 +1575,10 @@ function closePasteDialog() {
   input.addEventListener("change", updateFormPreview);
 });
 
+fields.markets.forEach((input) => {
+  input.addEventListener("change", updateMarketSummary);
+});
+
 form.addEventListener("submit", saveItem);
 controls.resetButton.addEventListener("click", resetForm);
 controls.exportButton.addEventListener("click", exportCsv);
@@ -1506,6 +1625,12 @@ controls.statusFilters.addEventListener("click", (event) => {
   state.filterStatus = button.dataset.status;
   renderFilters();
   renderInventory();
+});
+
+document.addEventListener("click", (event) => {
+  if (controls.marketPicker.open && !controls.marketPicker.contains(event.target)) {
+    controls.marketPicker.open = false;
+  }
 });
 
 if ("serviceWorker" in navigator) {
