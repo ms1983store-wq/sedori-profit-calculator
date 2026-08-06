@@ -1030,8 +1030,7 @@ function createRow(item) {
     <td data-label="商品">
       <div class="item-cell">
         <strong></strong>
-        <span class="desktop-item-meta"></span>
-        <span class="mobile-item-meta"></span>
+        <span></span>
       </div>
     </td>
     <td data-label="状態">
@@ -1072,19 +1071,10 @@ function createRow(item) {
     </td>
   `;
 
-  row.dataset.status = item.status;
   row.querySelector(".ledger-no-cell").textContent = item.ledgerNo || "-";
   row.querySelector(".photo-cell").replaceChildren(createItemPhoto(item));
   row.querySelector(".item-cell strong").textContent = item.name;
-  const itemMarkets = getItemMarkets(item);
-  row.querySelector(".desktop-item-meta").textContent = [
-    item.status === "出品中" ? "" : itemMarkets.join("・"),
-    item.category,
-    item.memo,
-  ]
-    .filter(Boolean)
-    .join(" / ");
-  row.querySelector(".mobile-item-meta").textContent = [item.category, item.memo]
+  row.querySelector(".item-cell span").textContent = [item.category, item.memo]
     .filter(Boolean)
     .join(" / ");
   const statusSelect = row.querySelector(".status-select");
