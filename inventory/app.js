@@ -11,12 +11,15 @@ const statusOptions = ["出品前", "出品中", "売却済み", "発送準備",
 const marketOptions = ["メルカリ", "ラクマ", "Yahoo!フリマ", "ヤフオク", "Amazon", "その他"];
 const tanomeruShippingMethod = "tanomeru";
 const cloudApiUrl = "./api/inventory";
+const photoApiUrl = "./api/photo";
+const maxPhotoUploadBytes = 1_400_000;
 const cloudSyncIntervalMs = 15000;
 const canonicalCloudInventoryUrl = "https://sedori-profit-calculator.pages.dev/inventory/";
 const cloudCalculatorUrl = "https://sedori-profit-calculator.pages.dev/inventory/calculator/";
 const isCloudSyncHost =
   window.location.hostname === "sedori-profit-calculator.pages.dev" ||
   window.location.hostname.endsWith(".sedori-profit-calculator.pages.dev");
+const isLocalDevHost = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
 
 const yenFormatter = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -51,12 +54,16 @@ const cloudSync = {
   saveTimer: null,
 };
 
+let photoUploadInProgress = false;
+let photoPreviewObjectUrl = "";
+
 const form = document.querySelector("#itemForm");
 const fields = {
   id: document.querySelector("#itemId"),
   ledgerNo: document.querySelector("#ledgerNoInput"),
   name: document.querySelector("#nameInput"),
   imageUrl: document.querySelector("#imageUrlInput"),
+  photoFile: document.querySelector("#photoFileInput"),
   markets: Array.from(document.querySelectorAll('input[name="marketplace"]')),
   status: document.querySelector("#statusInput"),
   purchaseDate: document.querySelector("#purchaseDateInput"),
@@ -92,10 +99,14 @@ const output = {
   marketSummary: document.querySelector("#marketSummary"),
   formPhotoImage: document.querySelector("#formPhotoImage"),
   formPhotoEmpty: document.querySelector("#formPhotoEmpty"),
+  photoUploadStatus: document.querySelector("#photoUploadStatus"),
 };
 
 const controls = {
   resetButton: document.querySelector("#resetButton"),
+  saveButton: document.querySelector("#saveButton"),
+  photoUploadLabel: document.querySelector(".photo-upload-button"),
+  removePhotoButton: document.querySelector("#removePhotoButton"),
   exportButton: document.querySelector("#exportButton"),
   importInput: document.querySelector("#importInput"),
   pasteImportButton: document.querySelector("#pasteImportButton"),
@@ -473,6 +484,11 @@ function readForm() {
 }
 
 function updateFormPhotoPreview() {
+  if (photoUploadInProgress && photoPreviewObjectUrl) {
+    output.formPhotoImage.alt = fields.name.value.trim() ? `${fields.name.value.trim()}の写真` : "商品写真";
+    return;
+  }
+
   const imageUrl = normalizeImageUrl(fields.imageUrl.value);
   output.formPhotoImage.hidden = !imageUrl;
   output.formPhotoEmpty.hidden = Boolean(imageUrl);
@@ -485,6 +501,145 @@ function updateFormPhotoPreview() {
 
   output.formPhotoImage.src = imageUrl;
   output.formPhotoImage.alt = fields.name.value.trim() ? `${fields.name.value.trim()}の写真` : "商品写真";
+}
+
+function setPhotoUploadStatus(message = "", stateName = "") {
+  output.photoUploadStatus.textContent = message;
+  if (stateName) {
+    output.photoUploadStatus.dataset.state = stateName;
+  } else {
+    delete output.photoUploadStatus.dataset.state;
+  }
+}
+
+function releasePhotoPreviewObjectUrl() {
+  if (!photoPreviewObjectUrl) return;
+  URL.revokeObjectURL(photoPreviewObjectUrl);
+  photoPreviewObjectUrl = "";
+}
+
+function setPhotoUploadInProgress(isUploading) {
+  photoUploadInProgress = isUploading;
+  fields.photoFile.disabled = isUploading;
+  controls.saveButton.disabled = isUploading;
+  controls.resetButton.disabled = isUploading;
+  controls.removePhotoButton.disabled = isUploading;
+  controls.photoUploadLabel.setAttribute("aria-disabled", String(isUploading));
+}
+
+function loadPhotoImage(url) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("この写真を読み込めませんでした。JPEGまたはPNGでお試しください"));
+    image.src = url;
+  });
+}
+
+function canvasToJpegBlob(canvas, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("写真を変換できませんでした"));
+      }
+    }, "image/jpeg", quality);
+  });
+}
+
+async function preparePhotoUpload(file) {
+  if (!file || !String(file.type || "").startsWith("image/")) {
+    throw new Error("写真ファイルを選択してください");
+  }
+
+  const image = await loadPhotoImage(photoPreviewObjectUrl);
+  let maxDimension = 1400;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { alpha: false });
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+
+    for (const quality of [0.84, 0.72, 0.6]) {
+      const blob = await canvasToJpegBlob(canvas, quality);
+      if (blob.size <= maxPhotoUploadBytes) return blob;
+    }
+
+    maxDimension = Math.round(maxDimension * 0.72);
+  }
+
+  throw new Error("写真の容量を小さくできませんでした。別の写真をお試しください");
+}
+
+async function uploadPhotoFile(file) {
+  const blob = await preparePhotoUpload(file);
+  const headers = { "content-type": blob.type };
+  if (isLocalDevHost) headers["x-inventory-user-email"] = "local-photo-test@example.invalid";
+  const response = await fetch(photoApiUrl, {
+    method: "POST",
+    headers,
+    body: blob,
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !normalizeImageUrl(result.url)) {
+    throw new Error(result.error || "写真をクラウドへ保存できませんでした");
+  }
+  return normalizeImageUrl(result.url);
+}
+
+async function handlePhotoFileChange(event) {
+  const input = event.currentTarget;
+  const file = input.files?.[0];
+  if (!file) return;
+  if (!isCloudSyncHost && !isLocalDevHost) {
+    input.value = "";
+    setPhotoUploadStatus("写真の直接登録はクラウド版で利用できます", "error");
+    showToast("クラウド版の在庫帳から写真を登録してください");
+    return;
+  }
+
+  const previousUrl = fields.imageUrl.value;
+  releasePhotoPreviewObjectUrl();
+  photoPreviewObjectUrl = URL.createObjectURL(file);
+  output.formPhotoImage.src = photoPreviewObjectUrl;
+  output.formPhotoImage.hidden = false;
+  output.formPhotoEmpty.hidden = true;
+  output.formPhotoImage.alt = fields.name.value.trim() ? `${fields.name.value.trim()}の写真` : "選択した商品写真";
+  setPhotoUploadInProgress(true);
+  setPhotoUploadStatus("写真を軽量化してクラウドへ保存中です");
+
+  try {
+    fields.imageUrl.value = await uploadPhotoFile(file);
+    releasePhotoPreviewObjectUrl();
+    updateFormPhotoPreview();
+    setPhotoUploadStatus("写真を保存しました。商品情報の保存を押してください");
+    showToast("写真をクラウドへ保存しました");
+  } catch (error) {
+    fields.imageUrl.value = previousUrl;
+    releasePhotoPreviewObjectUrl();
+    updateFormPhotoPreview();
+    setPhotoUploadStatus(error.message || "写真を保存できませんでした", "error");
+    showToast(error.message || "写真を保存できませんでした");
+  } finally {
+    input.value = "";
+    setPhotoUploadInProgress(false);
+  }
+}
+
+function removeFormPhoto() {
+  releasePhotoPreviewObjectUrl();
+  fields.imageUrl.value = "";
+  fields.photoFile.value = "";
+  updateFormPhotoPreview();
+  setPhotoUploadStatus("写真を外しました。商品情報の保存を押してください");
 }
 
 function setMoneyInputs() {
@@ -505,25 +660,30 @@ function updateFormPreview() {
 
 function resetForm(options = {}) {
   const { focus = state.activeView === "entry" } = options;
+  releasePhotoPreviewObjectUrl();
   form.reset();
   fields.id.value = "";
   fields.ledgerNo.value = "";
   fields.imageUrl.value = "";
+  fields.photoFile.value = "";
   fields.purchaseDate.value = today();
   fields.feeRate.value = defaultFeeRate;
   controls.marketPicker.open = false;
   updateMarketSummary();
   output.formTitle.textContent = "商品登録";
+  setPhotoUploadStatus();
   updateFormPhotoPreview();
   updateFormPreview();
   if (focus) fields.name.focus();
 }
 
 function fillForm(item) {
+  releasePhotoPreviewObjectUrl();
   fields.id.value = item.id;
   fields.ledgerNo.value = item.ledgerNo || "";
   fields.name.value = item.name;
   fields.imageUrl.value = item.imageUrl || "";
+  fields.photoFile.value = "";
   setFormMarkets(item.markets ?? item.market ?? "メルカリ");
   controls.marketPicker.open = false;
   fields.status.value = normalizeStatus(item.status);
@@ -537,6 +697,7 @@ function fillForm(item) {
   fields.feeRate.value = normalizeFeeRateChoice(item.feeRate);
   fields.memo.value = item.memo || "";
   output.formTitle.textContent = "商品編集";
+  setPhotoUploadStatus();
   updateFormPhotoPreview();
   updateFormPreview();
   switchView("entry");
@@ -775,8 +936,9 @@ function renderInventory() {
 }
 
 function getListingAge(item) {
-  if (item.status !== "出品中" || !item.listingDate) return null;
-  return daysBetween(item.listingDate, today());
+  if (!item.listingDate) return null;
+  const endDate = soldStatuses.has(item.status) && item.saleDate ? item.saleDate : today();
+  return daysBetween(item.listingDate, endDate);
 }
 
 function getListingAgeStage(days) {
@@ -839,19 +1001,22 @@ function createItemPhoto(item) {
 }
 
 function renderListingGlance(row, item) {
-  if (item.status !== "出品中") return;
-
   const glance = row.querySelector(".listing-glance");
   const marketBadges = row.querySelector(".market-badges");
   const ageOutput = row.querySelector(".listing-age");
+  const markets = getItemMarkets(item);
   const age = getListingAge(item);
-  const ageText = age === null ? "未設定" : `${numberFormatter.format(age)}日`;
+  const ageText = age === null ? "" : `${numberFormatter.format(age)}日`;
 
-  marketBadges.replaceChildren(...getItemMarkets(item).map(createMarketBadge));
+  marketBadges.replaceChildren(...markets.map(createMarketBadge));
   ageOutput.textContent = ageText;
   ageOutput.dataset.ageStage = getListingAgeStage(age);
-  ageOutput.setAttribute("aria-label", age === null ? "出品日未設定" : `出品から${ageText}`);
-  glance.hidden = false;
+  ageOutput.hidden = age === null;
+  ageOutput.setAttribute(
+    "aria-label",
+    soldStatuses.has(item.status) && item.saleDate ? `出品から販売まで${ageText}` : `出品から${ageText}`,
+  );
+  glance.hidden = !markets.length && age === null;
 }
 
 function createRow(item) {
@@ -909,12 +1074,7 @@ function createRow(item) {
   row.querySelector(".ledger-no-cell").textContent = item.ledgerNo || "-";
   row.querySelector(".photo-cell").replaceChildren(createItemPhoto(item));
   row.querySelector(".item-cell strong").textContent = item.name;
-  const itemMarkets = getItemMarkets(item);
-  row.querySelector(".item-cell span").textContent = [
-    item.status === "出品中" ? "" : itemMarkets.join("・"),
-    item.category,
-    item.memo,
-  ]
+  row.querySelector(".item-cell span").textContent = [item.category, item.memo]
     .filter(Boolean)
     .join(" / ");
   const statusSelect = row.querySelector(".status-select");
@@ -988,6 +1148,10 @@ function render() {
 
 function saveItem(event) {
   event.preventDefault();
+  if (photoUploadInProgress) {
+    showToast("写真の保存が完了するまでお待ちください");
+    return;
+  }
   const formItem = readForm();
   if (!formItem.markets.length) {
     controls.marketPicker.open = true;
@@ -1657,7 +1821,13 @@ fields.markets.forEach((input) => {
   input.addEventListener("change", updateMarketSummary);
 });
 
-fields.imageUrl.addEventListener("input", updateFormPhotoPreview);
+fields.photoFile.addEventListener("change", handlePhotoFileChange);
+controls.removePhotoButton.addEventListener("click", removeFormPhoto);
+fields.imageUrl.addEventListener("input", () => {
+  if (!photoUploadInProgress) releasePhotoPreviewObjectUrl();
+  setPhotoUploadStatus();
+  updateFormPhotoPreview();
+});
 fields.imageUrl.addEventListener("change", () => {
   fields.imageUrl.value = normalizeImageUrl(fields.imageUrl.value);
   updateFormPhotoPreview();

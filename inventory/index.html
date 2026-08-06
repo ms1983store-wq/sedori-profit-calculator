@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=39" />
+    <link rel="stylesheet" href="./styles.css?v=40" />
   </head>
   <body>
     <main class="app-shell">
@@ -177,10 +177,24 @@
               <img id="formPhotoImage" alt="" hidden />
               <span id="formPhotoEmpty">写真なし</span>
             </div>
-            <label class="field">
-              <span>写真URL</span>
-              <input id="imageUrlInput" type="url" inputmode="url" placeholder="https://..." />
-            </label>
+            <div class="photo-controls">
+              <div class="photo-button-row">
+                <label class="photo-upload-button" for="photoFileInput">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3Z" />
+                    <circle cx="12" cy="13" r="3" />
+                  </svg>
+                  <span>写真を選ぶ</span>
+                  <input id="photoFileInput" type="file" accept="image/*" />
+                </label>
+                <button class="photo-remove-button" type="button" id="removePhotoButton">写真を外す</button>
+              </div>
+              <p class="photo-upload-status" id="photoUploadStatus" role="status" aria-live="polite"></p>
+              <label class="field photo-url-field">
+                <span>写真URL（任意）</span>
+                <input id="imageUrlInput" type="url" inputmode="url" placeholder="https://..." />
+              </label>
+            </div>
           </div>
 
           <div class="field-row">
@@ -393,6 +407,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=39" defer></script>
+    <script src="./app.js?v=40" defer></script>
   </body>
 </html>
