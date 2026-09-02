@@ -35,7 +35,7 @@ Cloudflare Accessの保護範囲 `/inventory/*` に3画面と同期APIを配置�
 
 ## Cloudflare同期版
 
-Pages Functionsの同期APIは、在庫を `/inventory/api/inventory`、計算履歴を `/inventory/api/calculator` でD1へ保存します。粗利計算の保存時は履歴と在庫を同一オリジン・同一Access認証内で続けて更新します。
+Pages Functionsの同期APIは、在庫を `/inventory/api/inventory`、月別目標を `/inventory/api/goals`、計算履歴を `/inventory/api/calculator` でD1へ保存します。粗利計算の保存時は履歴と在庫を同一オリジン・同一Access認証内で続けて更新します。
 
 通信できない間の変更は端末に未送信状態として残り、次回表示・オンライン復帰時に再試行します。画面の同期表示が「クラウド同期済み」になれば反映完了です。
 

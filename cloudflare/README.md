@@ -5,7 +5,7 @@
 ## 構成
 
 - Cloudflare Pages: アプリ本体
-- Pages Functions: `/inventory/api/inventory`、`/inventory/api/calculator`
+- Pages Functions: `/inventory/api/inventory`、`/inventory/api/goals`、`/inventory/api/calculator`
 - Cloudflare D1: 在庫データと計算履歴の保存
 - Cloudflare Access: ログイン認証
 
@@ -49,7 +49,7 @@ npx wrangler d1 execute sedori-inventory --file=cloudflare/schema.sql --remote
 
 ## 動作
 
-在庫帳は起動時に `/inventory/api/inventory`、粗利計算とカレンダーは `/inventory/api/calculator` を確認します。
+在庫帳は起動時に `/inventory/api/inventory` と `/inventory/api/goals`、粗利計算とカレンダーは `/inventory/api/calculator` を確認します。
 
 - APIが使える場合: D1と同期します
 - APIが使えない場合: 変更を端末に保持し、接続回復後に再試行します

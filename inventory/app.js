@@ -1,7 +1,9 @@
 const storageKey = "sedori-inventory-ledger:v1";
+const goalStorageKey = "sedori-inventory-ledger:monthly-goals/v1";
 const defaultInventoryLoadedKey = "sedori-inventory-ledger:default-inventory-version";
 const cloudPendingSyncKey = "sedori-inventory-ledger:cloud-pending/v1";
 const cloudPendingDeletedKey = "sedori-inventory-ledger:cloud-deleted/v1";
+const goalCloudPendingSyncKey = "sedori-inventory-ledger:goal-cloud-pending/v1";
 const calculatorReturnStorageKey = "sedori-inventory-ledger:calculator-return/v1";
 const defaultInventoryVersion = "management-csv-20260708-v1";
 const defaultFeeRate = 10;
@@ -11,6 +13,7 @@ const statusOptions = ["出品前", "出品中", "売却済み", "発送準備",
 const marketOptions = ["メルカリ", "ラクマ", "Yahoo!フリマ", "ヤフオク", "Amazon", "その他"];
 const tanomeruShippingMethod = "tanomeru";
 const cloudApiUrl = "./api/inventory";
+const goalCloudApiUrl = "./api/goals";
 const photoApiUrl = "./api/photo";
 const maxPhotoUploadBytes = 1_400_000;
 const cloudSyncIntervalMs = 15000;
@@ -20,6 +23,7 @@ const isCloudSyncHost =
   window.location.hostname === "sedori-profit-calculator.pages.dev" ||
   window.location.hostname.endsWith(".sedori-profit-calculator.pages.dev");
 const isLocalDevHost = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
+const defaultMonthlyGoals = Object.freeze({ sales: 600000, profit: 150000, soldCount: 40, margin: 20 });
 
 const yenFormatter = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -35,10 +39,12 @@ const percentFormatter = new Intl.NumberFormat("ja-JP", {
 
 const state = {
   items: [],
+  goals: {},
   filterStatus: "all",
   search: "",
   activeView: "top",
   selectedMonth: currentMonth(),
+  goalMonth: currentMonth(),
 };
 
 const cloudSync = {
@@ -54,10 +60,23 @@ const cloudSync = {
   saveTimer: null,
 };
 
+const goalCloudSync = {
+  initialized: false,
+  applyingRemote: false,
+  saving: false,
+  needsSave: false,
+  version: 0,
+  updatedAt: null,
+  localRevision: 0,
+  pollTimer: null,
+  saveTimer: null,
+};
+
 let photoUploadInProgress = false;
 let photoPreviewObjectUrl = "";
 
 const form = document.querySelector("#itemForm");
+const goalForm = document.querySelector("#goalForm");
 const fields = {
   id: document.querySelector("#itemId"),
   ledgerNo: document.querySelector("#ledgerNoInput"),
@@ -75,6 +94,13 @@ const fields = {
   packing: document.querySelector("#packingInput"),
   feeRate: document.querySelector("#feeRateInput"),
   memo: document.querySelector("#memoInput"),
+};
+
+const goalFields = {
+  sales: document.querySelector("#salesGoalInput"),
+  profit: document.querySelector("#profitGoalInput"),
+  soldCount: document.querySelector("#soldCountGoalInput"),
+  margin: document.querySelector("#marginGoalInput"),
 };
 
 const output = {
@@ -100,6 +126,43 @@ const output = {
   formPhotoImage: document.querySelector("#formPhotoImage"),
   formPhotoEmpty: document.querySelector("#formPhotoEmpty"),
   photoUploadStatus: document.querySelector("#photoUploadStatus"),
+  goalMonthInput: document.querySelector("#goalMonthInput"),
+  overallGoalRing: document.querySelector("#overallGoalRing"),
+  overallGoalPercent: document.querySelector("#overallGoalPercent"),
+  goalProgressDate: document.querySelector("#goalProgressDate"),
+  goalActualSales: document.querySelector("#goalActualSales"),
+  goalTargetSales: document.querySelector("#goalTargetSales"),
+  salesGoalPercent: document.querySelector("#salesGoalPercent"),
+  salesGoalBar: document.querySelector("#salesGoalBar"),
+  salesGoalRemaining: document.querySelector("#salesGoalRemaining"),
+  salesGoalPace: document.querySelector("#salesGoalPace"),
+  goalActualProfit: document.querySelector("#goalActualProfit"),
+  goalTargetProfit: document.querySelector("#goalTargetProfit"),
+  profitGoalPercent: document.querySelector("#profitGoalPercent"),
+  profitGoalBar: document.querySelector("#profitGoalBar"),
+  profitGoalRemaining: document.querySelector("#profitGoalRemaining"),
+  profitGoalPace: document.querySelector("#profitGoalPace"),
+  goalActualSoldCount: document.querySelector("#goalActualSoldCount"),
+  goalTargetSoldCount: document.querySelector("#goalTargetSoldCount"),
+  soldCountGoalPercent: document.querySelector("#soldCountGoalPercent"),
+  soldCountGoalBar: document.querySelector("#soldCountGoalBar"),
+  soldCountGoalRemaining: document.querySelector("#soldCountGoalRemaining"),
+  soldCountGoalPace: document.querySelector("#soldCountGoalPace"),
+  goalActualMargin: document.querySelector("#goalActualMargin"),
+  goalTargetMargin: document.querySelector("#goalTargetMargin"),
+  marginGoalPercent: document.querySelector("#marginGoalPercent"),
+  marginGoalBar: document.querySelector("#marginGoalBar"),
+  marginGoalDifference: document.querySelector("#marginGoalDifference"),
+  marginGoalPace: document.querySelector("#marginGoalPace"),
+  goalForecastMessage: document.querySelector("#goalForecastMessage"),
+  goalForecastSales: document.querySelector("#goalForecastSales"),
+  goalDailySalesNeeded: document.querySelector("#goalDailySalesNeeded"),
+  goalWeeklyCountNeeded: document.querySelector("#goalWeeklyCountNeeded"),
+  goalWeeklyTotal: document.querySelector("#goalWeeklyTotal"),
+  goalWeeklyChart: document.querySelector("#goalWeeklyChart"),
+  goalActionCount: document.querySelector("#goalActionCount"),
+  goalActionProfit: document.querySelector("#goalActionProfit"),
+  goalActionMargin: document.querySelector("#goalActionMargin"),
 };
 
 const controls = {
@@ -126,6 +189,11 @@ const controls = {
   calculatorBackLink: document.querySelector("#calculatorBackLink"),
   cloudInventoryLink: document.querySelector("#cloudInventoryLink"),
   marketPicker: document.querySelector("#marketPicker"),
+  goalsPreviousMonthButton: document.querySelector("#goalsPreviousMonthButton"),
+  goalsNextMonthButton: document.querySelector("#goalsNextMonthButton"),
+  openGoalDialogButton: document.querySelector("#openGoalDialogButton"),
+  closeGoalDialogButton: document.querySelector("#closeGoalDialogButton"),
+  goalDialog: document.querySelector("#goalDialog"),
 };
 
 function parseMoney(value) {
@@ -319,12 +387,12 @@ function getMonthEndDate(monthString) {
 
 function getInitialView() {
   const view = window.location.hash.replace(/^#/, "");
-  return ["top", "entry", "inventory"].includes(view) ? view : "top";
+  return ["top", "entry", "inventory", "goals"].includes(view) ? view : "top";
 }
 
 function switchView(view, options = {}) {
   const { updateHash = true, scroll = true } = options;
-  const nextView = ["top", "entry", "inventory"].includes(view) ? view : "top";
+  const nextView = ["top", "entry", "inventory", "goals"].includes(view) ? view : "top";
   state.activeView = nextView;
 
   controls.viewTabs.forEach((button) => {
@@ -777,6 +845,82 @@ function loadItems() {
   seedDefaultInventory();
 }
 
+function normalizeGoalValue(value, maximum) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.min(Math.max(number, 0), maximum);
+}
+
+function normalizeMonthlyGoal(goal = {}) {
+  return {
+    sales: Math.round(normalizeGoalValue(goal.sales, 1_000_000_000)),
+    profit: Math.round(normalizeGoalValue(goal.profit, 1_000_000_000)),
+    soldCount: Math.round(normalizeGoalValue(goal.soldCount, 100_000)),
+    margin: normalizeGoalValue(goal.margin, 100),
+    updatedAt: String(goal.updatedAt || ""),
+  };
+}
+
+function normalizeGoalCollection(goals) {
+  if (!goals || typeof goals !== "object" || Array.isArray(goals)) return {};
+  return Object.fromEntries(
+    Object.entries(goals)
+      .filter(([month, goal]) => /^\d{4}-\d{2}$/.test(month) && goal && typeof goal === "object")
+      .sort(([left], [right]) => left.localeCompare(right))
+      .slice(-120)
+      .map(([month, goal]) => [month, normalizeMonthlyGoal(goal)]),
+  );
+}
+
+function storeLocalGoals() {
+  localStorage.setItem(goalStorageKey, JSON.stringify(state.goals));
+}
+
+function loadGoals() {
+  try {
+    state.goals = normalizeGoalCollection(JSON.parse(localStorage.getItem(goalStorageKey) || "{}"));
+  } catch {
+    state.goals = {};
+  }
+}
+
+function getGoalConfig(month = state.goalMonth) {
+  const saved = state.goals[month];
+  return saved ? normalizeMonthlyGoal(saved) : { ...defaultMonthlyGoals, updatedAt: "" };
+}
+
+function openGoalDialog() {
+  const goal = getGoalConfig();
+  goalFields.sales.value = formatInput(goal.sales, true);
+  goalFields.profit.value = formatInput(goal.profit, true);
+  goalFields.soldCount.value = String(goal.soldCount);
+  goalFields.margin.value = String(goal.margin);
+  const [year, month] = state.goalMonth.split("-").map(Number);
+  controls.goalDialog.querySelector("#goalDialogTitle").textContent = `${year}年${month}月の目標`;
+  controls.goalDialog.showModal();
+}
+
+function closeGoalDialog() {
+  controls.goalDialog.close();
+}
+
+function saveMonthlyGoal(event) {
+  event.preventDefault();
+  state.goals[state.goalMonth] = normalizeMonthlyGoal({
+    sales: parseMoney(goalFields.sales.value),
+    profit: parseMoney(goalFields.profit.value),
+    soldCount: goalFields.soldCount.value,
+    margin: goalFields.margin.value,
+    updatedAt: new Date().toISOString(),
+  });
+  storeLocalGoals();
+  markPendingGoalCloudChanges();
+  queueGoalCloudSave();
+  renderGoals();
+  closeGoalDialog();
+  showToast("月間目標を保存しました");
+}
+
 function normalizeItem(item) {
   const sourceRef = String(item.sourceRef || "").trim();
   const ledgerNo =
@@ -927,6 +1071,171 @@ function renderSummary() {
   output.monthlyProfit.classList.toggle("loss-text", monthlyProfit < 0);
   output.monthlyAverageProfit.classList.toggle("loss-text", averageProfit < 0);
   output.monthlyMargin.classList.toggle("loss-text", monthlyMargin < 0);
+}
+
+function getMonthTiming(monthString) {
+  const [year, month] = String(monthString || currentMonth()).split("-").map(Number);
+  const totalDays = new Date(year, month, 0).getDate();
+  const current = currentMonth();
+  if (monthString < current) return { totalDays, elapsedDays: totalDays, remainingDays: 0, period: "past" };
+  if (monthString > current) return { totalDays, elapsedDays: 0, remainingDays: totalDays, period: "future" };
+  const elapsedDays = Math.min(new Date().getDate(), totalDays);
+  return { totalDays, elapsedDays, remainingDays: totalDays - elapsedDays, period: "current" };
+}
+
+function getGoalProgress(actual, target) {
+  if (!(target > 0)) return 0;
+  return Math.min(100, Math.max(0, Math.round((actual / target) * 100)));
+}
+
+function getGoalPaceLabel(progress, timing) {
+  if (progress >= 100) return "達成";
+  if (timing.period === "future") return "開始前";
+  if (timing.period === "past") return "未達成";
+  const expected = timing.totalDays ? (timing.elapsedDays / timing.totalDays) * 100 : 0;
+  return progress + 4 >= expected ? "順調" : "要ペースアップ";
+}
+
+function setGoalMetric({ actual, target, percentElement, barElement, paceElement }) {
+  const progress = getGoalProgress(actual, target);
+  percentElement.textContent = progress >= 100 ? "達成" : `${progress}%`;
+  barElement.style.width = `${progress}%`;
+  paceElement.textContent = getGoalPaceLabel(progress, getMonthTiming(state.goalMonth));
+  return progress;
+}
+
+function getWeeklySales(items) {
+  const weekly = [0, 0, 0, 0, 0];
+  items.forEach((item) => {
+    const day = Number(String(item.saleDate || "").slice(8, 10));
+    if (!day) return;
+    const index = Math.min(4, Math.floor((day - 1) / 7));
+    weekly[index] += Number(item.salePrice) || 0;
+  });
+  return weekly;
+}
+
+function renderGoalChart(monthlyItems, salesTarget, timing) {
+  const weeklySales = getWeeklySales(monthlyItems);
+  const targetPerWeek = salesTarget / 5;
+  const scaleMaximum = Math.max(targetPerWeek, ...weeklySales, 1);
+  const bars = Array.from(output.goalWeeklyChart.querySelectorAll(".chart-bar"));
+  const currentWeek = timing.period === "current" ? Math.min(4, Math.floor(Math.max(timing.elapsedDays - 1, 0) / 7)) : -1;
+
+  bars.forEach((bar, index) => {
+    const height = weeklySales[index] > 0 ? Math.max(7, Math.round((weeklySales[index] / scaleMaximum) * 100)) : 4;
+    bar.style.height = `${Math.min(height, 100)}%`;
+    bar.classList.toggle("current", index === currentWeek);
+    bar.title = `${index + 1}週: ${formatYen(weeklySales[index])}`;
+  });
+
+  const goalLine = Math.min(92, Math.max(8, (targetPerWeek / scaleMaximum) * 100));
+  output.goalWeeklyChart.style.setProperty("--goal-line", `${goalLine}%`);
+}
+
+function renderGoals() {
+  if (!output.goalMonthInput) return;
+  const goal = getGoalConfig();
+  const timing = getMonthTiming(state.goalMonth);
+  const monthlyItems = state.items.filter(
+    (item) => soldStatuses.has(item.status) && isSameMonth(item.saleDate, state.goalMonth),
+  );
+  const sales = monthlyItems.reduce((sum, item) => sum + item.salePrice, 0);
+  const profit = monthlyItems.reduce((sum, item) => sum + getCalculations(item).profit, 0);
+  const soldCount = monthlyItems.length;
+  const margin = sales > 0 ? (profit / sales) * 100 : 0;
+
+  output.goalMonthInput.value = state.goalMonth;
+  output.goalActualSales.textContent = formatYen(sales);
+  output.goalTargetSales.textContent = `/ ${formatYen(goal.sales)}`;
+  output.salesGoalRemaining.textContent = `残り ${formatYen(Math.max(0, goal.sales - sales))}`;
+  output.goalActualProfit.textContent = formatYen(profit);
+  output.goalTargetProfit.textContent = `/ ${formatYen(goal.profit)}`;
+  output.profitGoalRemaining.textContent = `残り ${formatYen(Math.max(0, goal.profit - profit))}`;
+  output.goalActualSoldCount.textContent = `${numberFormatter.format(soldCount)}件`;
+  output.goalTargetSoldCount.textContent = `/ ${numberFormatter.format(goal.soldCount)}件`;
+  output.soldCountGoalRemaining.textContent = `残り ${numberFormatter.format(Math.max(0, goal.soldCount - soldCount))}件`;
+  output.goalActualMargin.textContent = `${percentFormatter.format(margin)}%`;
+  output.goalTargetMargin.textContent = `/ ${percentFormatter.format(goal.margin)}%`;
+  const marginDifference = margin - goal.margin;
+  output.marginGoalDifference.textContent = `目標比 ${marginDifference >= 0 ? "+" : ""}${percentFormatter.format(marginDifference)}pt`;
+
+  const progressValues = [
+    setGoalMetric({
+      actual: sales,
+      target: goal.sales,
+      percentElement: output.salesGoalPercent,
+      barElement: output.salesGoalBar,
+      paceElement: output.salesGoalPace,
+    }),
+    setGoalMetric({
+      actual: Math.max(0, profit),
+      target: goal.profit,
+      percentElement: output.profitGoalPercent,
+      barElement: output.profitGoalBar,
+      paceElement: output.profitGoalPace,
+    }),
+    setGoalMetric({
+      actual: soldCount,
+      target: goal.soldCount,
+      percentElement: output.soldCountGoalPercent,
+      barElement: output.soldCountGoalBar,
+      paceElement: output.soldCountGoalPace,
+    }),
+    setGoalMetric({
+      actual: Math.max(0, margin),
+      target: goal.margin,
+      percentElement: output.marginGoalPercent,
+      barElement: output.marginGoalBar,
+      paceElement: output.marginGoalPace,
+    }),
+  ];
+
+  const overall = Math.round(progressValues.reduce((sum, value) => sum + value, 0) / progressValues.length);
+  output.overallGoalPercent.textContent = `${overall}%`;
+  output.overallGoalRing.style.setProperty("--progress", `${overall}%`);
+  const monthNumber = Number(state.goalMonth.slice(5, 7));
+  output.goalProgressDate.textContent =
+    timing.period === "current"
+      ? `${monthNumber}月${timing.elapsedDays}日時点`
+      : timing.period === "past"
+        ? `${monthNumber}月実績`
+        : `${monthNumber}月目標`;
+
+  const forecastSales =
+    timing.period === "current" && timing.elapsedDays > 0
+      ? (sales / timing.elapsedDays) * timing.totalDays
+      : timing.period === "past"
+        ? sales
+        : 0;
+  const remainingSales = Math.max(0, goal.sales - sales);
+  const remainingProfit = Math.max(0, goal.profit - profit);
+  const remainingCount = Math.max(0, goal.soldCount - soldCount);
+  const dailySalesNeeded = timing.remainingDays > 0 ? remainingSales / timing.remainingDays : remainingSales;
+  const remainingWeeks = Math.max(1, timing.remainingDays / 7);
+  const weeklyCountNeeded = Math.ceil(remainingCount / remainingWeeks);
+
+  output.goalForecastSales.textContent = formatYen(forecastSales);
+  output.goalDailySalesNeeded.textContent = formatYen(dailySalesNeeded);
+  output.goalWeeklyCountNeeded.textContent = `週${numberFormatter.format(weeklyCountNeeded)}件`;
+  output.goalWeeklyTotal.textContent = `累計 ${formatYen(sales)}`;
+  output.goalForecastMessage.textContent =
+    timing.period === "future"
+      ? "販売開始前"
+      : sales >= goal.sales
+        ? "売上目標を達成しました"
+        : forecastSales >= goal.sales
+          ? "このペースなら達成圏内"
+          : "ペースアップが必要です";
+
+  output.goalActionCount.textContent = remainingCount ? `残り${numberFormatter.format(remainingCount)}件を販売` : "販売数目標を達成";
+  output.goalActionProfit.textContent = remainingProfit ? `利益を${formatYen(remainingProfit)}追加` : "利益目標を達成";
+  output.goalActionMargin.textContent =
+    marginDifference >= 0
+      ? `利益率${percentFormatter.format(goal.margin)}%以上を維持`
+      : `利益率をあと${percentFormatter.format(Math.abs(marginDifference))}pt改善`;
+
+  renderGoalChart(monthlyItems, goal.sales, timing);
 }
 
 function renderInventory() {
@@ -1142,6 +1451,7 @@ function renderFilters() {
 
 function render() {
   renderSummary();
+  renderGoals();
   renderFilters();
   renderInventory();
 }
@@ -1717,6 +2027,190 @@ async function initializeCloudSync() {
   }
 }
 
+function hasPendingGoalCloudChanges() {
+  return localStorage.getItem(goalCloudPendingSyncKey) === "1";
+}
+
+function markPendingGoalCloudChanges() {
+  goalCloudSync.localRevision += 1;
+  localStorage.setItem(goalCloudPendingSyncKey, "1");
+  if (isCloudSyncHost) setCloudSyncStatus("saving", "目標をクラウドへ同期中");
+}
+
+function clearPendingGoalCloudChanges(expectedRevision = goalCloudSync.localRevision) {
+  if (expectedRevision !== goalCloudSync.localRevision) return false;
+  localStorage.removeItem(goalCloudPendingSyncKey);
+  return true;
+}
+
+function serializeGoals(goals) {
+  return JSON.stringify(normalizeGoalCollection(goals));
+}
+
+function mergeGoalCollections(primaryGoals, secondaryGoals) {
+  const merged = normalizeGoalCollection(primaryGoals);
+  Object.entries(normalizeGoalCollection(secondaryGoals)).forEach(([month, goal]) => {
+    const existing = merged[month];
+    if (!existing) {
+      merged[month] = goal;
+      return;
+    }
+    const incomingTime = Date.parse(goal.updatedAt || "");
+    const existingTime = Date.parse(existing.updatedAt || "");
+    if (!Number.isFinite(existingTime) || (Number.isFinite(incomingTime) && incomingTime >= existingTime)) {
+      merged[month] = goal;
+    }
+  });
+  return merged;
+}
+
+function applyCloudGoals(goals) {
+  goalCloudSync.applyingRemote = true;
+  state.goals = normalizeGoalCollection(goals);
+  storeLocalGoals();
+  renderGoals();
+  goalCloudSync.applyingRemote = false;
+}
+
+async function fetchCloudGoals() {
+  const response = await fetch(goalCloudApiUrl, {
+    headers: { accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`Cloud goals are unavailable: ${response.status}`);
+  return response.json();
+}
+
+async function writeCloudGoals(options = {}) {
+  const response = await fetch(goalCloudApiUrl, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({
+      goals: state.goals,
+      baseVersion: goalCloudSync.version,
+      force: options.force === true,
+    }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (response.status === 409) return { conflict: true, ...body };
+  if (!response.ok) throw new Error(body.error || `Cloud goal save failed: ${response.status}`);
+  return body;
+}
+
+function queueGoalCloudSave() {
+  if (!goalCloudSync.initialized || goalCloudSync.applyingRemote) return;
+  clearTimeout(goalCloudSync.saveTimer);
+  goalCloudSync.saveTimer = setTimeout(() => {
+    pushCloudGoals().catch(() => {});
+  }, 500);
+}
+
+function finishGoalCloudSave(result, revision) {
+  goalCloudSync.version = Number(result.version) || goalCloudSync.version;
+  goalCloudSync.updatedAt = result.updatedAt || goalCloudSync.updatedAt;
+  if (clearPendingGoalCloudChanges(revision)) {
+    setCloudSyncStatus("synced", formatCloudSyncStatus());
+  }
+}
+
+async function pushCloudGoals(options = {}) {
+  if (!goalCloudSync.initialized) return;
+  if (goalCloudSync.saving) {
+    goalCloudSync.needsSave = true;
+    return;
+  }
+  goalCloudSync.saving = true;
+  const revision = goalCloudSync.localRevision;
+  setCloudSyncStatus("saving", "目標をクラウドへ同期中");
+  try {
+    const result = await writeCloudGoals(options);
+    if (result.conflict) {
+      goalCloudSync.version = Number(result.version) || goalCloudSync.version;
+      applyCloudGoals(mergeGoalCollections(result.goals, state.goals));
+      const retry = await writeCloudGoals({ force: true });
+      finishGoalCloudSave(retry, revision);
+      return;
+    }
+    finishGoalCloudSave(result, revision);
+  } catch {
+    setCloudSyncStatus("error", "目標を同期できません。通信時に自動で再試行します");
+  } finally {
+    goalCloudSync.saving = false;
+    if (goalCloudSync.needsSave) {
+      goalCloudSync.needsSave = false;
+      queueGoalCloudSave();
+    }
+  }
+}
+
+async function pullCloudGoals(options = {}) {
+  if (!goalCloudSync.initialized || goalCloudSync.saving) return;
+  try {
+    const remote = await fetchCloudGoals();
+    const remoteVersion = Number(remote.version) || 0;
+    if (remoteVersion <= goalCloudSync.version) {
+      if (hasPendingGoalCloudChanges()) queueGoalCloudSave();
+      return;
+    }
+    const remoteGoals = normalizeGoalCollection(remote.goals);
+    goalCloudSync.version = remoteVersion;
+    goalCloudSync.updatedAt = remote.updatedAt || goalCloudSync.updatedAt;
+    if (hasPendingGoalCloudChanges()) {
+      const merged = mergeGoalCollections(remoteGoals, state.goals);
+      applyCloudGoals(merged);
+      if (serializeGoals(merged) !== serializeGoals(remoteGoals)) {
+        queueGoalCloudSave();
+      } else {
+        clearPendingGoalCloudChanges();
+      }
+      return;
+    }
+    if (serializeGoals(remoteGoals) !== serializeGoals(state.goals)) {
+      applyCloudGoals(remoteGoals);
+      if (!options.silent) showToast("クラウドから目標を更新しました");
+    }
+  } catch {
+    setCloudSyncStatus("error", "目標のクラウド同期を確認できません");
+  }
+}
+
+function startGoalCloudPolling() {
+  clearInterval(goalCloudSync.pollTimer);
+  goalCloudSync.pollTimer = setInterval(() => {
+    pullCloudGoals({ silent: true }).catch(() => {});
+  }, cloudSyncIntervalMs);
+}
+
+async function initializeGoalCloudSync() {
+  if (!isCloudSyncHost) return;
+  try {
+    const remote = await fetchCloudGoals();
+    goalCloudSync.initialized = true;
+    goalCloudSync.version = Number(remote.version) || 0;
+    goalCloudSync.updatedAt = remote.updatedAt || null;
+    const remoteGoals = normalizeGoalCollection(remote.goals);
+    if (hasPendingGoalCloudChanges()) {
+      const merged = mergeGoalCollections(remoteGoals, state.goals);
+      applyCloudGoals(merged);
+      if (serializeGoals(merged) !== serializeGoals(remoteGoals)) {
+        await pushCloudGoals({ force: true });
+      } else {
+        clearPendingGoalCloudChanges();
+      }
+    } else if (Object.keys(remoteGoals).length) {
+      applyCloudGoals(remoteGoals);
+    } else if (Object.keys(state.goals).length) {
+      markPendingGoalCloudChanges();
+      await pushCloudGoals({ force: true });
+    }
+    startGoalCloudPolling();
+  } catch {
+    goalCloudSync.initialized = false;
+    setCloudSyncStatus("error", "目標のクラウド同期に接続できません");
+  }
+}
+
 let toastTimer;
 function showToast(message) {
   if (!controls.toast) {
@@ -1812,6 +2306,15 @@ function closePasteDialog() {
   input.addEventListener("focus", () => input.select());
 });
 
+[goalFields.sales, goalFields.profit].forEach((input) => {
+  input.addEventListener("input", () => {
+    const cursorAtEnd = input.selectionStart === input.value.length;
+    input.value = formatInput(input.value, true);
+    if (cursorAtEnd) input.setSelectionRange(input.value.length, input.value.length);
+  });
+  input.addEventListener("focus", () => input.select());
+});
+
 [fields.feeRate, fields.status, fields.saleDate].forEach((input) => {
   input.addEventListener("input", updateFormPreview);
   input.addEventListener("change", updateFormPreview);
@@ -1839,7 +2342,10 @@ output.formPhotoImage.addEventListener("error", () => {
 });
 
 form.addEventListener("submit", saveItem);
+goalForm.addEventListener("submit", saveMonthlyGoal);
 controls.resetButton.addEventListener("click", resetForm);
+controls.openGoalDialogButton.addEventListener("click", openGoalDialog);
+controls.closeGoalDialogButton.addEventListener("click", closeGoalDialog);
 controls.exportButton.addEventListener("click", exportCsv);
 controls.importInput.addEventListener("change", importCsv);
 controls.pasteImportButton?.addEventListener("click", openPasteDialog);
@@ -1866,6 +2372,19 @@ output.summaryMonthInput.addEventListener("input", (event) => {
   if (!event.target.value) return;
   state.selectedMonth = event.target.value;
   renderSummary();
+});
+controls.goalsPreviousMonthButton.addEventListener("click", () => {
+  state.goalMonth = shiftMonth(state.goalMonth, -1);
+  renderGoals();
+});
+controls.goalsNextMonthButton.addEventListener("click", () => {
+  state.goalMonth = shiftMonth(state.goalMonth, 1);
+  renderGoals();
+});
+output.goalMonthInput.addEventListener("input", (event) => {
+  if (!event.target.value) return;
+  state.goalMonth = event.target.value;
+  renderGoals();
 });
 controls.viewTabs.forEach((button) => {
   button.addEventListener("click", () => switchView(button.dataset.viewTab));
@@ -1912,35 +2431,53 @@ window.addEventListener("hashchange", () => {
 
 window.addEventListener("focus", () => {
   pullCloudInventory({ silent: true }).catch(() => {});
+  pullCloudGoals({ silent: true }).catch(() => {});
 });
 
 window.addEventListener("storage", (event) => {
-  if (event.key !== storageKey || !event.newValue) return;
+  if (event.key === storageKey && event.newValue) {
+    try {
+      const incoming = JSON.parse(event.newValue);
+      if (!Array.isArray(incoming)) return;
+      const merged = mergeItemCollections(state.items, incoming);
+      if (serializeItems(merged) === serializeItems(state.items)) return;
+      applyCloudItems(merged);
+      markPendingCloudChanges();
+      queueCloudSave();
+      showToast("粗利計算の保存内容を反映しました");
+    } catch {
+      // Ignore malformed inventory updates from other tabs.
+    }
+  }
 
-  try {
-    const incoming = JSON.parse(event.newValue);
-    if (!Array.isArray(incoming)) return;
-    const merged = mergeItemCollections(state.items, incoming);
-    if (serializeItems(merged) === serializeItems(state.items)) return;
-    applyCloudItems(merged);
-    markPendingCloudChanges();
-    queueCloudSave();
-    showToast("粗利計算の保存内容を反映しました");
-  } catch {
-    // Ignore malformed updates from other tabs.
+  if (event.key === goalStorageKey && event.newValue) {
+    try {
+      const incomingGoals = normalizeGoalCollection(JSON.parse(event.newValue));
+      const mergedGoals = mergeGoalCollections(state.goals, incomingGoals);
+      if (serializeGoals(mergedGoals) === serializeGoals(state.goals)) return;
+      applyCloudGoals(mergedGoals);
+      markPendingGoalCloudChanges();
+      queueGoalCloudSave();
+    } catch {
+      // Ignore malformed goal updates from other tabs.
+    }
   }
 });
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     pullCloudInventory({ silent: true }).catch(() => {});
+    pullCloudGoals({ silent: true }).catch(() => {});
   }
 });
 
 configureCalculatorBackLink();
 loadItems();
+loadGoals();
 state.selectedMonth = getLatestSaleMonth() || currentMonth();
+state.goalMonth = currentMonth();
 switchView(getInitialView(), { updateHash: false, scroll: false });
 resetForm();
 render();
 initializeCloudSync();
+initializeGoalCloudSync();

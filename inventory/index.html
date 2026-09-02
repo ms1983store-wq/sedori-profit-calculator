@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=42" />
+    <link rel="stylesheet" href="./styles.css?v=43" />
   </head>
   <body>
     <main class="app-shell">
@@ -76,6 +76,7 @@
         <button class="tab-button active" type="button" data-view-tab="top" aria-selected="true">トップ</button>
         <button class="tab-button" type="button" data-view-tab="entry" aria-selected="false">商品登録</button>
         <button class="tab-button" type="button" data-view-tab="inventory" aria-selected="false">在庫管理</button>
+        <button class="tab-button" type="button" data-view-tab="goals" aria-selected="false">目標・進捗</button>
       </nav>
 
       <section class="view-panel active" id="topView" data-view-panel="top" aria-label="トップ">
@@ -142,6 +143,98 @@
           <button class="nav-action" type="button" data-view-target="entry">商品登録</button>
           <button class="nav-action" type="button" data-view-target="inventory">在庫管理</button>
         </section>
+      </section>
+
+      <section class="view-panel" id="goalsView" data-view-panel="goals" aria-label="目標・進捗" hidden>
+        <div class="goal-page">
+          <div class="goal-toolbar">
+            <section class="month-toolbar" aria-label="目標・進捗の対象月">
+              <button class="icon-button subtle" type="button" id="goalsPreviousMonthButton" aria-label="前の月" title="前の月">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </button>
+              <label class="month-field">
+                <span>対象月</span>
+                <input id="goalMonthInput" type="month" />
+              </label>
+              <button class="icon-button subtle" type="button" id="goalsNextMonthButton" aria-label="次の月" title="次の月">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
+            </section>
+            <button class="goal-edit-button" id="openGoalDialogButton" type="button">目標編集</button>
+          </div>
+
+          <section class="goal-overview" aria-label="月間目標の達成状況">
+            <article class="overall-progress">
+              <div class="progress-ring" id="overallGoalRing">
+                <div class="progress-ring-content">
+                  <strong id="overallGoalPercent">0%</strong>
+                  <span>総合達成率</span>
+                </div>
+              </div>
+              <span id="goalProgressDate">-</span>
+            </article>
+
+            <div class="goal-grid">
+              <article class="goal-metric" data-goal-metric="sales">
+                <div class="metric-heading"><span>売上</span><b id="salesGoalPercent">0%</b></div>
+                <div class="metric-values"><strong id="goalActualSales">¥0</strong><span id="goalTargetSales">/ ¥0</span></div>
+                <div class="metric-track"><span id="salesGoalBar"></span></div>
+                <div class="metric-meta"><span id="salesGoalRemaining">残り ¥0</span><span id="salesGoalPace">-</span></div>
+              </article>
+
+              <article class="goal-metric" data-goal-metric="profit" data-tone="pink">
+                <div class="metric-heading"><span>利益</span><b id="profitGoalPercent">0%</b></div>
+                <div class="metric-values"><strong id="goalActualProfit">¥0</strong><span id="goalTargetProfit">/ ¥0</span></div>
+                <div class="metric-track"><span id="profitGoalBar"></span></div>
+                <div class="metric-meta"><span id="profitGoalRemaining">残り ¥0</span><span id="profitGoalPace">-</span></div>
+              </article>
+
+              <article class="goal-metric" data-goal-metric="soldCount" data-tone="amber">
+                <div class="metric-heading"><span>販売数</span><b id="soldCountGoalPercent">0%</b></div>
+                <div class="metric-values"><strong id="goalActualSoldCount">0件</strong><span id="goalTargetSoldCount">/ 0件</span></div>
+                <div class="metric-track"><span id="soldCountGoalBar"></span></div>
+                <div class="metric-meta"><span id="soldCountGoalRemaining">残り 0件</span><span id="soldCountGoalPace">-</span></div>
+              </article>
+
+              <article class="goal-metric" data-goal-metric="margin" data-tone="blue">
+                <div class="metric-heading"><span>利益率</span><b id="marginGoalPercent">0%</b></div>
+                <div class="metric-values"><strong id="goalActualMargin">0.0%</strong><span id="goalTargetMargin">/ 0.0%</span></div>
+                <div class="metric-track"><span id="marginGoalBar"></span></div>
+                <div class="metric-meta"><span id="marginGoalDifference">目標比 0.0pt</span><span id="marginGoalPace">-</span></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="pace-band" aria-label="月間目標の見通し">
+            <div class="pace-intro"><p>今月の見通し</p><strong id="goalForecastMessage">実績を集計中</strong></div>
+            <article class="pace-stat"><span class="pace-label">月末予測売上</span><strong id="goalForecastSales">¥0</strong></article>
+            <article class="pace-stat"><span class="pace-label">1日あたり必要売上</span><strong id="goalDailySalesNeeded">¥0</strong></article>
+            <article class="pace-stat"><span class="pace-label">必要販売数</span><strong id="goalWeeklyCountNeeded">週0件</strong></article>
+          </section>
+
+          <section class="trend-panel" aria-label="週ごとの売上進捗">
+            <div class="trend-main">
+              <div class="trend-heading"><h2>週ごとの売上</h2><span class="chart-caption" id="goalWeeklyTotal">累計 ¥0</span></div>
+              <div class="goal-chart" id="goalWeeklyChart" aria-label="週別売上グラフ">
+                <span class="chart-bar"></span>
+                <span class="chart-bar"></span>
+                <span class="chart-bar"></span>
+                <span class="chart-bar"></span>
+                <span class="chart-bar"></span>
+              </div>
+              <div class="chart-labels"><span>1週</span><span>2週</span><span>3週</span><span>4週</span><span>5週</span></div>
+            </div>
+            <div class="next-actions" aria-label="今週の目安">
+              <div class="action-row"><span class="action-number">1</span><span id="goalActionCount">販売数の目安を計算中</span></div>
+              <div class="action-row"><span class="action-number">2</span><span id="goalActionProfit">利益の目安を計算中</span></div>
+              <div class="action-row"><span class="action-number">3</span><span id="goalActionMargin">利益率の目安を計算中</span></div>
+            </div>
+          </section>
+        </div>
       </section>
 
       <section class="view-panel" id="entryView" data-view-panel="entry" aria-label="商品登録" hidden>
@@ -388,6 +481,42 @@
       </section>
     </main>
 
+    <dialog class="goal-dialog-shell" id="goalDialog" aria-labelledby="goalDialogTitle">
+      <form class="goal-dialog-panel" id="goalForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="section-kicker">MONTHLY GOAL</p>
+            <h2 id="goalDialogTitle">月間目標</h2>
+          </div>
+          <button class="icon-button tiny" type="button" id="closeGoalDialogButton" aria-label="閉じる" title="閉じる">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="goal-fields">
+          <label class="field">
+            <span>売上目標</span>
+            <span class="money-input"><span>¥</span><input id="salesGoalInput" type="text" inputmode="numeric" pattern="[0-9,]*" /></span>
+          </label>
+          <label class="field">
+            <span>利益目標</span>
+            <span class="money-input"><span>¥</span><input id="profitGoalInput" type="text" inputmode="numeric" pattern="[0-9,]*" /></span>
+          </label>
+          <label class="field">
+            <span>販売数目標</span>
+            <span class="count-input"><input id="soldCountGoalInput" type="number" min="0" step="1" /><span>件</span></span>
+          </label>
+          <label class="field">
+            <span>利益率目標</span>
+            <span class="rate-input"><input id="marginGoalInput" type="number" min="0" max="100" step="0.1" /><span>%</span></span>
+          </label>
+        </div>
+        <button class="primary-button" type="submit">目標を保存</button>
+      </form>
+    </dialog>
+
     <dialog class="paste-dialog" id="csvPasteDialog" aria-labelledby="pasteDialogTitle">
       <div class="dialog-panel">
         <div class="dialog-heading">
@@ -407,6 +536,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=42" defer></script>
+    <script src="./app.js?v=43" defer></script>
   </body>
 </html>
