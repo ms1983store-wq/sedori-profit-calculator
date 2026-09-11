@@ -1172,6 +1172,113 @@ select:focus,
   font-weight: 850;
 }
 
+.fee-adjustment {
+  display: grid;
+  gap: 8px;
+  padding: 11px;
+  border: 1px solid #cddad6;
+  border-radius: 8px;
+  background: #f7faf9;
+}
+
+.fee-adjustment-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fee-adjustment-heading h3 {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.fee-adjustment-badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 2px 8px;
+  border: 1px solid #b9cbc6;
+  border-radius: 999px;
+  color: var(--muted);
+  background: #fff;
+  font-size: 0.68rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.fee-adjustment-badge[data-active="true"] {
+  border-color: #e4a127;
+  color: #a35400;
+  background: #fff6df;
+}
+
+.fee-adjustment-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1fr;
+  gap: 8px;
+}
+
+.money-output {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  height: 44px;
+  overflow: hidden;
+  border: 1px dashed #c7d3cf;
+  border-radius: 8px;
+  background: #edf2f0;
+}
+
+.money-output > span {
+  color: var(--teal);
+  font-weight: 850;
+  text-align: center;
+}
+
+.money-output strong {
+  min-width: 0;
+  padding-right: 10px;
+  text-align: right;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.actual-fee-field.is-adjusted .money-input {
+  border-color: #e4a127;
+  background: #fffaf0;
+}
+
+.actual-fee-field.is-adjusted .money-input input {
+  color: #8b4300;
+  font-weight: 850;
+}
+
+.actual-fee-field .money-input:has(input:disabled) {
+  opacity: 0.58;
+}
+
+.fee-difference {
+  min-height: 16px;
+  margin: -1px 0 0;
+  color: #a35400;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.fee-memo-field {
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #dce5e2;
+}
+
+.fee-memo-field input {
+  height: 39px;
+}
+
 .calculation-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2012,12 +2119,29 @@ td[data-label="操作"] {
     box-shadow: 0 8px 18px rgba(28, 37, 35, 0.07);
   }
 
-  .field-row,
-  .field-row.date-grid,
-  .field-row.compact,
-  .money-grid,
+  .field-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .field-row.item-header-row {
+    grid-template-columns: 0.44fr 1.56fr;
+  }
+
+  .field-row.date-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .money-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .calculation-strip {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .field-row.date-grid input {
+    padding-inline: 7px 3px;
+    font-size: 0.76rem;
   }
 
   .photo-editor {
@@ -2039,12 +2163,53 @@ td[data-label="操作"] {
     font-size: 0.74rem;
   }
 
+  .fee-adjustment {
+    padding: 9px 8px;
+  }
+
+  .fee-adjustment-grid {
+    grid-template-columns: 0.8fr 1fr 1fr;
+    gap: 6px;
+  }
+
+  .fee-adjustment-grid .field > span:first-child {
+    font-size: 0.68rem;
+  }
+
+  .fee-adjustment-grid .money-input,
+  .fee-adjustment-grid .rate-input,
+  .fee-adjustment-grid .money-output {
+    grid-template-columns: 20px minmax(0, 1fr);
+    height: 41px;
+  }
+
+  .fee-adjustment-grid .rate-input {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fee-adjustment-grid .money-input input,
+  .fee-adjustment-grid .rate-input select {
+    height: 39px;
+    padding-inline: 4px 7px;
+    font-size: 0.78rem;
+  }
+
+  .fee-adjustment-grid .money-output strong {
+    padding-right: 7px;
+    font-size: 0.78rem;
+  }
+
   .search-field {
     width: 100%;
   }
 
   .calculation-strip {
-    gap: 10px;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .calculation-strip strong {
+    font-size: 0.92rem;
   }
 
   .month-toolbar {

@@ -93,6 +93,7 @@ const fields = {
   shipping: document.querySelector("#shippingInput"),
   packing: document.querySelector("#packingInput"),
   feeRate: document.querySelector("#feeRateInput"),
+  actualFee: document.querySelector("#actualFeeInput"),
   memo: document.querySelector("#memoInput"),
 };
 
@@ -108,6 +109,10 @@ const output = {
   formBreakEven: document.querySelector("#formBreakEven"),
   formProfit: document.querySelector("#formProfit"),
   formMargin: document.querySelector("#formMargin"),
+  formCalculatedFee: document.querySelector("#formCalculatedFee"),
+  formFeeDifference: document.querySelector("#formFeeDifference"),
+  actualFeeState: document.querySelector("#actualFeeState"),
+  actualFeeField: document.querySelector("#actualFeeField"),
   stockCount: document.querySelector("#stockCount"),
   stockCost: document.querySelector("#stockCost"),
   monthlySales: document.querySelector("#monthlySales"),
@@ -279,7 +284,8 @@ function getCalculations(item) {
   const shippingMethod = item.shippingMethod === tanomeruShippingMethod ? tanomeruShippingMethod : "";
   const feeRounding = item.feeRounding === "round" ? "round" : "ceil";
   const feeBase = shippingMethod === tanomeruShippingMethod ? salePrice - shipping : salePrice;
-  const fee = hasActualFee ? Number(item.actualFee) || 0 : calculateFee(feeBase, feeRate, feeRounding);
+  const calculatedFee = calculateFee(feeBase, feeRate, feeRounding);
+  const fee = hasActualFee ? Number(item.actualFee) || 0 : calculatedFee;
   const profit = salePrice - fee - totalCost;
   const margin = salePrice > 0 ? (profit / salePrice) * 100 : 0;
   const breakEven = calculateBreakEvenPrice(totalCost, feeRate, {
@@ -288,7 +294,7 @@ function getCalculations(item) {
     feeRounding,
   });
 
-  return { totalCost, fee, profit, margin, breakEven };
+  return { totalCost, calculatedFee, hasActualFee, fee, profit, margin, breakEven };
 }
 
 function today() {
@@ -546,6 +552,10 @@ function readForm() {
     shipping: parseMoney(fields.shipping.value),
     packing: parseMoney(fields.packing.value),
     feeRate: normalizeFeeRateChoice(fields.feeRate.value),
+    actualFee:
+      soldStatuses.has(fields.status.value) && fields.actualFee.value.trim() !== ""
+        ? parseMoney(fields.actualFee.value)
+        : null,
     memo: fields.memo.value.trim(),
     updatedAt: new Date().toISOString(),
   };
@@ -711,15 +721,26 @@ function removeFormPhoto() {
 }
 
 function setMoneyInputs() {
-  [fields.purchasePrice, fields.salePrice, fields.shipping, fields.packing].forEach((input) => {
-    input.value = formatInput(input.value, input === fields.purchasePrice);
+  [fields.purchasePrice, fields.salePrice, fields.shipping, fields.packing, fields.actualFee].forEach((input) => {
+    input.value = formatInput(input.value, input === fields.purchasePrice || input === fields.actualFee);
   });
 }
 
 function updateFormPreview() {
   setMoneyInputs();
+  const canAdjustFee = soldStatuses.has(fields.status.value);
+  fields.actualFee.disabled = !canAdjustFee;
   const item = readForm();
   const calc = getCalculations(item);
+  const feeDifference = calc.fee - calc.calculatedFee;
+  const isAdjusted = canAdjustFee && calc.hasActualFee;
+  output.formCalculatedFee.textContent = numberFormatter.format(calc.calculatedFee);
+  output.actualFeeState.textContent = isAdjusted ? "補正中" : canAdjustFee ? "自動計算" : "売却後に入力";
+  output.actualFeeState.dataset.active = String(isAdjusted);
+  output.actualFeeField.classList.toggle("is-adjusted", isAdjusted);
+  output.formFeeDifference.textContent = isAdjusted
+    ? `計算値より ${feeDifference > 0 ? "+" : feeDifference < 0 ? "-" : "±"}¥${numberFormatter.format(Math.abs(feeDifference))}`
+    : "計算手数料を使用";
   output.formBreakEven.textContent = formatYen(calc.breakEven);
   output.formProfit.textContent = formatYen(calc.profit);
   output.formMargin.textContent = `${percentFormatter.format(calc.margin)}%`;
@@ -763,6 +784,10 @@ function fillForm(item) {
   fields.shipping.value = formatInput(item.shipping);
   fields.packing.value = formatInput(item.packing);
   fields.feeRate.value = normalizeFeeRateChoice(item.feeRate);
+  fields.actualFee.value =
+    item.actualFee === null || item.actualFee === undefined || item.actualFee === ""
+      ? ""
+      : formatInput(item.actualFee, true);
   fields.memo.value = item.memo || "";
   output.formTitle.textContent = "商品編集";
   setPhotoUploadStatus();
@@ -1470,12 +1495,9 @@ function saveItem(event) {
     return;
   }
   const existing = state.items.find((candidate) => candidate.id === formItem.id);
-  const keepActualFee =
-    existing && Number(existing.salePrice) === Number(formItem.salePrice) && existing.status === formItem.status;
   const item = normalizeItem({
     ...existing,
     ...formItem,
-    actualFee: keepActualFee ? existing.actualFee : null,
     category: existing?.category || "",
     sourceRef: existing?.sourceRef || "",
   });
@@ -1518,6 +1540,10 @@ function changeItemStatus(id, status) {
     fields.status.value = item.status;
     fields.saleDate.value = item.saleDate;
     fields.listingDate.value = item.listingDate;
+    fields.actualFee.value =
+      item.actualFee === null || item.actualFee === undefined || item.actualFee === ""
+        ? ""
+        : formatInput(item.actualFee, true);
     updateFormPreview();
   }
 
@@ -2293,10 +2319,10 @@ function closePasteDialog() {
   }
 }
 
-[fields.purchasePrice, fields.salePrice, fields.shipping, fields.packing].forEach((input) => {
+[fields.purchasePrice, fields.salePrice, fields.shipping, fields.packing, fields.actualFee].forEach((input) => {
   input.addEventListener("input", () => {
     const cursorAtEnd = input.selectionStart === input.value.length;
-    input.value = formatInput(input.value, input === fields.purchasePrice);
+    input.value = formatInput(input.value, input === fields.purchasePrice || input === fields.actualFee);
     if (cursorAtEnd) {
       input.setSelectionRange(input.value.length, input.value.length);
     }
