@@ -584,6 +584,10 @@ th,
   gap: 10px;
 }
 
+.field-row.listing-settings-row {
+  grid-template-columns: 1.3fr 0.85fr 0.85fr;
+}
+
 .field-row.date-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1395,6 +1399,22 @@ select:focus,
   --status-border: #34d399;
 }
 
+.filter-chip[data-status="検品済み"],
+.status-badge[data-status="検品済み"],
+.status-select[data-status="検品済み"] {
+  --status-color: #087a87;
+  --status-bg: #cff7f6;
+  --status-border: #4bd3d0;
+}
+
+.filter-chip[data-status="写真待ち"],
+.status-badge[data-status="写真待ち"],
+.status-select[data-status="写真待ち"] {
+  --status-color: #a15c00;
+  --status-bg: #fff4c2;
+  --status-border: #f1bd38;
+}
+
 .filter-chip[data-status="出品中"],
 .status-badge[data-status="出品中"],
 .status-select[data-status="出品中"] {
@@ -1425,6 +1445,95 @@ select:focus,
   --status-color: #db2777;
   --status-bg: #fce7f3;
   --status-border: #f472b6;
+}
+
+.location-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: -3px 0 12px;
+  padding: 7px 9px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.location-filter-title {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.location-filter-row {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.location-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.location-filter {
+  --location-color: #475569;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid color-mix(in srgb, var(--location-color) 38%, #d5ded8);
+  border-radius: 7px;
+  color: color-mix(in srgb, var(--location-color) 86%, #23312d);
+  background: #fff;
+  font-size: 0.72rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.location-filter[data-location="自宅"] { --location-color: #16816d; }
+.location-filter[data-location="オークレボ"] { --location-color: #c55318; }
+
+.location-filter.active {
+  border-color: var(--location-color);
+  color: #fff;
+  background: var(--location-color);
+}
+
+.location-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--location-color);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--location-color) 18%, #fff);
+}
+
+.location-filter.active .location-dot {
+  background: #fff;
+  box-shadow: none;
+}
+
+.location-filter-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 19px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  color: var(--location-color);
+  background: color-mix(in srgb, var(--location-color) 9%, #fff);
+  font-size: 0.62rem;
+}
+
+.location-filter.active .location-filter-count {
+  background: #fff;
 }
 
 .table-wrap {
@@ -1476,6 +1585,13 @@ tbody tr:last-child td {
   border-bottom: 0;
 }
 
+tbody tr[data-storage-location="自宅"] { --location-color: #16816d; }
+tbody tr[data-storage-location="オークレボ"] { --location-color: #c55318; }
+
+tbody tr > td:first-child {
+  box-shadow: inset 3px 0 0 var(--location-color, transparent);
+}
+
 .item-cell {
   display: grid;
   gap: 3px;
@@ -1484,6 +1600,49 @@ tbody tr:last-child td {
 
 .item-cell strong {
   overflow-wrap: anywhere;
+}
+
+.item-detail-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.item-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storage-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 5px;
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+  min-height: 18px;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--location-color) 38%, var(--line));
+  border-radius: 5px;
+  color: color-mix(in srgb, var(--location-color) 88%, var(--ink));
+  background: color-mix(in srgb, var(--location-color) 8%, #fff);
+  font-size: 0.58rem;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.storage-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--location-color);
 }
 
 .photo-cell {
@@ -1834,6 +1993,7 @@ td[data-label="操作"] {
     gap: 5px;
     padding: 9px;
     border: 1px solid rgba(221, 228, 223, 0.94);
+    border-left: 4px solid var(--location-color, rgba(221, 228, 223, 0.94));
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.94);
     box-shadow: 0 8px 20px rgba(28, 37, 35, 0.07);
@@ -1853,6 +2013,10 @@ td[data-label="操作"] {
     font-weight: 830;
     line-height: 1.12;
     grid-column: span 2;
+  }
+
+  tbody tr > td:first-child {
+    box-shadow: none;
   }
 
   td::before {
@@ -1946,6 +2110,27 @@ td[data-label="操作"] {
     line-height: 1.25;
   }
 
+  .item-cell .storage-badge {
+    display: inline-flex;
+    width: max-content;
+    margin-top: 0;
+    padding: 2px 6px;
+    color: color-mix(in srgb, var(--location-color) 88%, var(--ink));
+    background: color-mix(in srgb, var(--location-color) 8%, #fff);
+    font-size: 0.58rem;
+    line-height: 1;
+    text-overflow: clip;
+  }
+
+  .item-detail-line {
+    gap: 4px;
+  }
+
+  .item-detail-line .item-meta {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
   .item-photo {
     width: 48px;
   }
@@ -1998,6 +2183,47 @@ td[data-label="操作"] {
   .inventory-heading {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .field-row.listing-settings-row {
+    grid-template-columns: 1.25fr 0.88fr 0.92fr;
+    gap: 6px;
+  }
+
+  .listing-settings-row .field > span:first-child {
+    font-size: 0.68rem;
+  }
+
+  .listing-settings-row select,
+  .listing-settings-row .market-picker summary {
+    padding-inline: 7px;
+    font-size: 0.74rem;
+  }
+
+  .location-toolbar {
+    gap: 5px;
+    margin-bottom: 8px;
+    padding: 5px 6px;
+  }
+
+  .location-filter-title {
+    font-size: 0.62rem;
+  }
+
+  .location-filter-row {
+    gap: 4px;
+  }
+
+  .location-filter {
+    min-height: 28px;
+    padding-inline: 7px;
+    font-size: 0.64rem;
+  }
+
+  .location-filter-count {
+    min-width: 17px;
+    height: 16px;
+    font-size: 0.56rem;
   }
 
   .app-header > div:first-child {

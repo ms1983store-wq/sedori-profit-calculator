@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=44" />
+    <link rel="stylesheet" href="./styles.css?v=45" />
   </head>
   <body>
     <main class="app-shell">
@@ -290,7 +290,7 @@
             </div>
           </div>
 
-          <div class="field-row">
+          <div class="field-row listing-settings-row">
             <div class="field market-field">
               <span id="marketPickerLabel">出品先</span>
               <details class="market-picker" id="marketPicker">
@@ -330,10 +330,19 @@
               <span>状態</span>
               <select id="statusInput">
                 <option value="出品前">出品前</option>
+                <option value="検品済み">検品済み</option>
+                <option value="写真待ち">写真待ち</option>
                 <option value="出品中">出品中</option>
                 <option value="売却済み">売却済み</option>
                 <option value="発送準備">発送準備</option>
                 <option value="評価待ち">評価待ち</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>保管場所</span>
+              <select id="storageLocationInput">
+                <option value="自宅">自宅</option>
+                <option value="オークレボ">オークレボ</option>
               </select>
             </label>
           </div>
@@ -463,6 +472,12 @@
             <button type="button" class="filter-chip" data-status="出品前">
               <span class="filter-label">出品前</span><span class="filter-count">0</span>
             </button>
+            <button type="button" class="filter-chip" data-status="検品済み">
+              <span class="filter-label">検品済み</span><span class="filter-count">0</span>
+            </button>
+            <button type="button" class="filter-chip" data-status="写真待ち">
+              <span class="filter-label">写真待ち</span><span class="filter-count">0</span>
+            </button>
             <button type="button" class="filter-chip" data-status="出品中">
               <span class="filter-label">出品中</span><span class="filter-count">0</span>
             </button>
@@ -475,6 +490,21 @@
             <button type="button" class="filter-chip" data-status="評価待ち">
               <span class="filter-label">評価待ち</span><span class="filter-count">0</span>
             </button>
+          </div>
+
+          <div class="location-toolbar" aria-label="保管場所フィルター">
+            <span class="location-filter-title">保管場所</span>
+            <div class="location-filter-row" id="locationFilters">
+              <button type="button" class="location-filter active" data-location="all">
+                <span>すべて</span><span class="location-filter-count">0</span>
+              </button>
+              <button type="button" class="location-filter" data-location="自宅">
+                <span class="location-dot" aria-hidden="true"></span><span>自宅</span><span class="location-filter-count">0</span>
+              </button>
+              <button type="button" class="location-filter" data-location="オークレボ">
+                <span class="location-dot" aria-hidden="true"></span><span>オークレボ</span><span class="location-filter-count">0</span>
+              </button>
+            </div>
           </div>
 
           <div class="table-wrap">
@@ -560,6 +590,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=44" defer></script>
+    <script src="./app.js?v=45" defer></script>
   </body>
 </html>

@@ -9,7 +9,8 @@ const defaultInventoryVersion = "management-csv-20260708-v1";
 const defaultFeeRate = 10;
 const feeRateOptions = [10, 5];
 const soldStatuses = new Set(["売却済み", "発送準備", "評価待ち"]);
-const statusOptions = ["出品前", "出品中", "売却済み", "発送準備", "評価待ち"];
+const statusOptions = ["出品前", "検品済み", "写真待ち", "出品中", "売却済み", "発送準備", "評価待ち"];
+const storageLocationOptions = ["自宅", "オークレボ"];
 const marketOptions = ["メルカリ", "ラクマ", "Yahoo!フリマ", "ヤフオク", "Amazon", "その他"];
 const tanomeruShippingMethod = "tanomeru";
 const cloudApiUrl = "./api/inventory";
@@ -41,6 +42,7 @@ const state = {
   items: [],
   goals: {},
   filterStatus: "all",
+  filterLocation: "all",
   search: "",
   activeView: "top",
   selectedMonth: currentMonth(),
@@ -85,6 +87,7 @@ const fields = {
   photoFile: document.querySelector("#photoFileInput"),
   markets: Array.from(document.querySelectorAll('input[name="marketplace"]')),
   status: document.querySelector("#statusInput"),
+  storageLocation: document.querySelector("#storageLocationInput"),
   purchaseDate: document.querySelector("#purchaseDateInput"),
   listingDate: document.querySelector("#listingDateInput"),
   saleDate: document.querySelector("#saleDateInput"),
@@ -187,6 +190,7 @@ const controls = {
   nextMonthButton: document.querySelector("#nextMonthButton"),
   searchInput: document.querySelector("#searchInput"),
   statusFilters: document.querySelector("#statusFilters"),
+  locationFilters: document.querySelector("#locationFilters"),
   viewTabs: Array.from(document.querySelectorAll("[data-view-tab]")),
   viewPanels: Array.from(document.querySelectorAll("[data-view-panel]")),
   viewTargets: Array.from(document.querySelectorAll("[data-view-target]")),
@@ -483,6 +487,11 @@ function normalizeStatus(value) {
   return status;
 }
 
+function normalizeStorageLocation(value) {
+  const location = String(value || "").trim();
+  return storageLocationOptions.includes(location) ? location : "自宅";
+}
+
 function normalizeShippingMethod(value) {
   const method = String(value || "").trim();
   return method === tanomeruShippingMethod || method === "たのメル便" ? tanomeruShippingMethod : "";
@@ -544,6 +553,7 @@ function readForm() {
     market: markets[0] || "",
     markets,
     status: fields.status.value,
+    storageLocation: normalizeStorageLocation(fields.storageLocation.value),
     purchaseDate: fields.purchaseDate.value,
     listingDate: fields.listingDate.value,
     saleDate: fields.saleDate.value,
@@ -757,6 +767,7 @@ function resetForm(options = {}) {
   fields.photoFile.value = "";
   fields.purchaseDate.value = today();
   fields.feeRate.value = defaultFeeRate;
+  fields.storageLocation.value = "自宅";
   controls.marketPicker.open = false;
   updateMarketSummary();
   output.formTitle.textContent = "商品登録";
@@ -776,6 +787,7 @@ function fillForm(item) {
   setFormMarkets(item.markets ?? item.market ?? "メルカリ");
   controls.marketPicker.open = false;
   fields.status.value = normalizeStatus(item.status);
+  fields.storageLocation.value = normalizeStorageLocation(item.storageLocation);
   fields.purchaseDate.value = item.purchaseDate || "";
   fields.listingDate.value = item.listingDate || "";
   fields.saleDate.value = item.saleDate || "";
@@ -961,6 +973,7 @@ function normalizeItem(item) {
     market: markets[0],
     markets,
     status: normalizeStatus(item.status),
+    storageLocation: normalizeStorageLocation(item.storageLocation),
     purchaseDate: item.purchaseDate || "",
     listingDate: item.listingDate || "",
     saleDate: item.saleDate || "",
@@ -1059,10 +1072,20 @@ function getFilteredItems() {
       return item.status === state.filterStatus;
     })
     .filter((item) => {
+      if (state.filterLocation === "all") return true;
+      return normalizeStorageLocation(item.storageLocation) === state.filterLocation;
+    })
+    .filter((item) => {
       if (!keyword) return true;
-      return [item.ledgerNo, item.name, ...getItemMarkets(item), item.category, item.memo, item.sourceRef].some((value) =>
-        String(value).toLowerCase().includes(keyword),
-      );
+      return [
+        item.ledgerNo,
+        item.name,
+        ...getItemMarkets(item),
+        item.storageLocation,
+        item.category,
+        item.memo,
+        item.sourceRef,
+      ].some((value) => String(value).toLowerCase().includes(keyword));
     })
     .sort((a, b) => {
       const left = soldStatuses.has(b.status) ? b.saleDate || b.purchaseDate || "" : b.purchaseDate || "";
@@ -1364,7 +1387,10 @@ function createRow(item) {
     <td data-label="商品">
       <div class="item-cell">
         <strong></strong>
-        <span></span>
+        <div class="item-detail-line">
+          <span class="item-meta"></span>
+          <span class="storage-badge"></span>
+        </div>
       </div>
     </td>
     <td data-label="状態">
@@ -1406,11 +1432,15 @@ function createRow(item) {
   `;
 
   row.querySelector(".ledger-no-cell").textContent = item.ledgerNo || "-";
+  row.dataset.storageLocation = item.storageLocation;
   row.querySelector(".photo-cell").replaceChildren(createItemPhoto(item));
   row.querySelector(".item-cell strong").textContent = item.name;
-  row.querySelector(".item-cell span").textContent = [item.category, item.memo]
+  row.querySelector(".item-meta").textContent = [item.category, item.memo]
     .filter(Boolean)
     .join(" / ");
+  const storageBadge = row.querySelector(".storage-badge");
+  storageBadge.dataset.location = item.storageLocation;
+  storageBadge.textContent = item.storageLocation;
   const statusSelect = row.querySelector(".status-select");
   statusSelect.replaceChildren(
     ...statusOptions.map((status) => {
@@ -1471,6 +1501,22 @@ function renderFilters() {
     if (countOutput) countOutput.textContent = numberFormatter.format(count);
     button.setAttribute("aria-label", `${label} ${numberFormatter.format(count)}件`);
     button.classList.toggle("active", button.dataset.status === state.filterStatus);
+  });
+
+  const locationItems =
+    state.filterStatus === "all" ? state.items : state.items.filter((item) => item.status === state.filterStatus);
+  const locationCounts = new Map(storageLocationOptions.map((location) => [location, 0]));
+  locationItems.forEach((item) => {
+    const location = normalizeStorageLocation(item.storageLocation);
+    locationCounts.set(location, (locationCounts.get(location) || 0) + 1);
+  });
+
+  controls.locationFilters.querySelectorAll(".location-filter").forEach((button) => {
+    const location = button.dataset.location;
+    const count = location === "all" ? locationItems.length : locationCounts.get(location) || 0;
+    const countOutput = button.querySelector(".location-filter-count");
+    if (countOutput) countOutput.textContent = numberFormatter.format(count);
+    button.classList.toggle("active", location === state.filterLocation);
   });
 }
 
@@ -1571,6 +1617,7 @@ function exportCsv() {
     "写真URL",
     "販売先",
     "状態",
+    "保管場所",
     "仕入日",
     "出品日",
     "販売日",
@@ -1598,6 +1645,7 @@ function exportCsv() {
       item.imageUrl,
       getItemMarkets(item).join("・"),
       item.status,
+      item.storageLocation,
       item.purchaseDate,
       item.listingDate,
       item.saleDate,
@@ -1728,6 +1776,7 @@ function mapInventoryLedgerRows(rows) {
   const imageUrlColumn = columnIndex(header, ["写真URL", "画像URL", "サムネイルURL"]);
   const marketColumn = columnIndex(header, ["販売先"], 1);
   const statusColumn = columnIndex(header, ["状態"], 2);
+  const storageLocationColumn = columnIndex(header, ["保管場所", "保管先", "在庫場所"]);
   const purchaseDateColumn = columnIndex(header, ["仕入日"], 3);
   const listingDateColumn = columnIndex(header, ["出品日", "掲載日", "出品開始日"]);
   const saleDateColumn = columnIndex(header, ["販売日"], 4);
@@ -1751,6 +1800,7 @@ function mapInventoryLedgerRows(rows) {
         imageUrl: imageUrlColumn >= 0 ? row[imageUrlColumn] : "",
         markets: normalizeMarkets(row[marketColumn]),
         status: normalizeStatus(row[statusColumn]),
+        storageLocation: storageLocationColumn >= 0 ? normalizeStorageLocation(row[storageLocationColumn]) : "自宅",
         purchaseDate: normalizeDate(row[purchaseDateColumn]),
         listingDate: listingDateColumn >= 0 ? normalizeDate(row[listingDateColumn]) : "",
         saleDate: normalizeDate(row[saleDateColumn]),
@@ -2279,6 +2329,7 @@ function reloadDefaultInventory() {
   });
   state.items = defaultItems;
   state.filterStatus = "all";
+  state.filterLocation = "all";
   state.search = "";
   controls.searchInput.value = "";
   localStorage.setItem(defaultInventoryLoadedKey, defaultInventoryVersion);
@@ -2427,6 +2478,14 @@ controls.statusFilters.addEventListener("click", (event) => {
   const button = event.target.closest(".filter-chip");
   if (!button) return;
   state.filterStatus = button.dataset.status;
+  renderFilters();
+  renderInventory();
+});
+
+controls.locationFilters.addEventListener("click", (event) => {
+  const button = event.target.closest(".location-filter");
+  if (!button) return;
+  state.filterLocation = button.dataset.location;
   renderFilters();
   renderInventory();
 });
