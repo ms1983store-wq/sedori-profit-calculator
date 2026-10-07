@@ -1394,7 +1394,7 @@ function createRow(item) {
         <strong></strong>
         <div class="item-detail-line">
           <span class="item-meta"></span>
-          <span class="storage-badge"></span>
+          <select class="storage-badge storage-select" aria-label="保管場所を変更"></select>
         </div>
       </div>
     </td>
@@ -1444,10 +1444,19 @@ function createRow(item) {
   row.querySelector(".item-meta").textContent = [item.category, item.memo]
     .filter(Boolean)
     .join(" / ");
-  const storageBadge = row.querySelector(".storage-badge");
-  storageBadge.dataset.location = currentStorageLocation;
-  storageBadge.textContent = currentStorageLocation;
-  storageBadge.hidden = !currentStorageLocation;
+  const storageSelect = row.querySelector(".storage-select");
+  storageSelect.replaceChildren(
+    ...storageLocationOptions.map((location) => {
+      const option = document.createElement("option");
+      option.value = location;
+      option.textContent = location;
+      option.selected = location === currentStorageLocation;
+      return option;
+    }),
+  );
+  storageSelect.dataset.location = currentStorageLocation;
+  storageSelect.hidden = !currentStorageLocation;
+  storageSelect.setAttribute("aria-label", `${item.name}の保管場所を変更`);
   const statusSelect = row.querySelector(".status-select");
   statusSelect.replaceChildren(
     ...statusOptions.map((status) => {
@@ -1471,6 +1480,7 @@ function createRow(item) {
   row.querySelector(".margin-cell").textContent = hasSalePrice ? `${percentFormatter.format(calc.margin)}%` : "-";
   row.querySelector(".margin-cell").classList.toggle("loss-text", hasSalePrice && calc.margin < 0);
   statusSelect.addEventListener("change", () => changeItemStatus(item.id, statusSelect.value));
+  storageSelect.addEventListener("change", () => changeItemStorageLocation(item.id, storageSelect.value));
   row.querySelector(".edit-action").addEventListener("click", () => fillForm(item));
   row.querySelector(".delete-action").addEventListener("click", () => deleteItem(item.id));
 
@@ -1604,6 +1614,26 @@ function changeItemStatus(id, status) {
   saveItems();
   render();
   showToast(`状態を「${item.status}」に変更しました`);
+}
+
+function changeItemStorageLocation(id, storageLocation) {
+  const index = state.items.findIndex((candidate) => candidate.id === id);
+  if (index < 0 || soldStatuses.has(state.items[index].status)) return;
+
+  const item = normalizeItem({
+    ...state.items[index],
+    storageLocation: normalizeStorageLocation(storageLocation),
+    updatedAt: new Date().toISOString(),
+  });
+  state.items[index] = item;
+
+  if (fields.id.value === item.id) {
+    fields.storageLocation.value = item.storageLocation;
+  }
+
+  saveItems();
+  render();
+  showToast(`保管場所を「${item.storageLocation}」に変更しました`);
 }
 
 function deleteItem(id) {

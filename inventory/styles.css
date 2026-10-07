@@ -1640,13 +1640,20 @@ tbody tr > td:first-child {
   display: none !important;
 }
 
-.storage-badge::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  flex: 0 0 6px;
-  border-radius: 50%;
-  background: var(--location-color);
+.storage-select {
+  cursor: pointer;
+  font-family: inherit;
+  padding-right: 18px;
+}
+
+.storage-select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--location-color) 45%, transparent);
+  outline-offset: 1px;
+}
+
+.storage-select option {
+  color: var(--ink);
+  background: #fff;
 }
 
 .photo-cell {
