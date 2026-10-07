@@ -1641,14 +1641,28 @@ tbody tr > td:first-child {
 }
 
 .storage-select {
+  width: auto;
+  height: 22px;
+  min-height: 22px;
+  max-width: 88px;
+  appearance: none;
   cursor: pointer;
   font-family: inherit;
-  padding-right: 18px;
+  padding: 0 19px 0 16px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, var(--location-color) 0 3px, transparent 3.5px) 7px 50% / 7px 7px no-repeat,
+    linear-gradient(45deg, transparent 50%, var(--location-color) 50%) calc(100% - 9px) 48% / 4px 4px no-repeat,
+    linear-gradient(135deg, var(--location-color) 50%, transparent 50%) calc(100% - 6px) 48% / 4px 4px no-repeat,
+    color-mix(in srgb, var(--location-color) 8%, #fff);
+  box-shadow: none;
 }
 
 .storage-select:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--location-color) 45%, transparent);
   outline-offset: 1px;
+  border-color: color-mix(in srgb, var(--location-color) 58%, var(--line));
+  box-shadow: none;
 }
 
 .storage-select option {
@@ -2124,10 +2138,11 @@ td[data-label="操作"] {
   .item-cell .storage-badge {
     display: inline-flex;
     width: max-content;
+    height: 22px;
+    min-height: 22px;
     margin-top: 0;
-    padding: 2px 6px;
+    padding: 0 19px 0 16px;
     color: color-mix(in srgb, var(--location-color) 88%, var(--ink));
-    background: color-mix(in srgb, var(--location-color) 8%, #fff);
     font-size: 0.58rem;
     line-height: 1;
     text-overflow: clip;
