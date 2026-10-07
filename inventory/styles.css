@@ -1636,6 +1636,10 @@ tbody tr > td:first-child {
   white-space: nowrap;
 }
 
+.storage-badge[hidden] {
+  display: none !important;
+}
+
 .storage-badge::before {
   content: "";
   width: 6px;

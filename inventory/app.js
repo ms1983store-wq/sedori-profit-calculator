@@ -492,6 +492,11 @@ function normalizeStorageLocation(value) {
   return storageLocationOptions.includes(location) ? location : "自宅";
 }
 
+function getCurrentStorageLocation(item) {
+  if (soldStatuses.has(normalizeStatus(item?.status))) return "";
+  return normalizeStorageLocation(item?.storageLocation);
+}
+
 function normalizeShippingMethod(value) {
   const method = String(value || "").trim();
   return method === tanomeruShippingMethod || method === "たのメル便" ? tanomeruShippingMethod : "";
@@ -1073,7 +1078,7 @@ function getFilteredItems() {
     })
     .filter((item) => {
       if (state.filterLocation === "all") return true;
-      return normalizeStorageLocation(item.storageLocation) === state.filterLocation;
+      return getCurrentStorageLocation(item) === state.filterLocation;
     })
     .filter((item) => {
       if (!keyword) return true;
@@ -1081,7 +1086,7 @@ function getFilteredItems() {
         item.ledgerNo,
         item.name,
         ...getItemMarkets(item),
-        item.storageLocation,
+        getCurrentStorageLocation(item),
         item.category,
         item.memo,
         item.sourceRef,
@@ -1432,15 +1437,17 @@ function createRow(item) {
   `;
 
   row.querySelector(".ledger-no-cell").textContent = item.ledgerNo || "-";
-  row.dataset.storageLocation = item.storageLocation;
+  const currentStorageLocation = getCurrentStorageLocation(item);
+  row.dataset.storageLocation = currentStorageLocation;
   row.querySelector(".photo-cell").replaceChildren(createItemPhoto(item));
   row.querySelector(".item-cell strong").textContent = item.name;
   row.querySelector(".item-meta").textContent = [item.category, item.memo]
     .filter(Boolean)
     .join(" / ");
   const storageBadge = row.querySelector(".storage-badge");
-  storageBadge.dataset.location = item.storageLocation;
-  storageBadge.textContent = item.storageLocation;
+  storageBadge.dataset.location = currentStorageLocation;
+  storageBadge.textContent = currentStorageLocation;
+  storageBadge.hidden = !currentStorageLocation;
   const statusSelect = row.querySelector(".status-select");
   statusSelect.replaceChildren(
     ...statusOptions.map((status) => {
@@ -1507,7 +1514,8 @@ function renderFilters() {
     state.filterStatus === "all" ? state.items : state.items.filter((item) => item.status === state.filterStatus);
   const locationCounts = new Map(storageLocationOptions.map((location) => [location, 0]));
   locationItems.forEach((item) => {
-    const location = normalizeStorageLocation(item.storageLocation);
+    const location = getCurrentStorageLocation(item);
+    if (!location) return;
     locationCounts.set(location, (locationCounts.get(location) || 0) + 1);
   });
 
