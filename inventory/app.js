@@ -762,6 +762,11 @@ function updateFormPreview() {
   output.formProfit.classList.toggle("loss-text", calc.profit < 0);
 }
 
+function resizeMemoField() {
+  fields.memo.style.height = "auto";
+  fields.memo.style.height = `${Math.max(62, fields.memo.scrollHeight + 2)}px`;
+}
+
 function resetForm(options = {}) {
   const { focus = state.activeView === "entry" } = options;
   releasePhotoPreviewObjectUrl();
@@ -779,6 +784,7 @@ function resetForm(options = {}) {
   setPhotoUploadStatus();
   updateFormPhotoPreview();
   updateFormPreview();
+  resizeMemoField();
   if (focus) fields.name.focus();
 }
 
@@ -811,6 +817,7 @@ function fillForm(item) {
   updateFormPhotoPreview();
   updateFormPreview();
   switchView("entry");
+  resizeMemoField();
   fields.name.focus();
 }
 
@@ -1408,9 +1415,9 @@ function createRow(item) {
       </div>
     </td>
     <td class="purchase-price-cell" data-label="仕入れ値"></td>
+    <td class="purchase-date-cell" data-label="仕入日"></td>
     <td class="listing-date-cell" data-label="出品日"></td>
     <td class="sale-date-cell" data-label="販売日"></td>
-    <td class="sale-days-cell" data-label="販売まで"></td>
     <td class="sale-price-cell" data-label="販売価格"></td>
     <td class="break-even-cell" data-label="損益分岐点"></td>
     <td class="profit-cell" data-label="利益"></td>
@@ -1470,9 +1477,9 @@ function createRow(item) {
   statusSelect.dataset.status = item.status;
   renderListingGlance(row, item);
   row.querySelector(".purchase-price-cell").textContent = formatYen(item.purchasePrice);
+  row.querySelector(".purchase-date-cell").textContent = item.purchaseDate || "-";
   row.querySelector(".listing-date-cell").textContent = item.listingDate || "-";
   row.querySelector(".sale-date-cell").textContent = item.saleDate || "-";
-  row.querySelector(".sale-days-cell").textContent = formatSaleDays(item);
   row.querySelector(".sale-price-cell").textContent = hasSalePrice ? formatYen(item.salePrice) : "未入力";
   row.querySelector(".break-even-cell").textContent = formatYen(calc.breakEven);
   row.querySelector(".profit-cell").textContent = hasSalePrice ? formatYen(calc.profit) : "-";
@@ -2434,6 +2441,8 @@ function closePasteDialog() {
   input.addEventListener("input", updateFormPreview);
   input.addEventListener("change", updateFormPreview);
 });
+
+fields.memo.addEventListener("input", resizeMemoField);
 
 fields.markets.forEach((input) => {
   input.addEventListener("change", updateMarketSummary);

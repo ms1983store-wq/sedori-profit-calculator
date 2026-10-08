@@ -56,7 +56,8 @@ body::before {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -1273,14 +1274,34 @@ select:focus,
 
 .fee-memo-field {
   grid-template-columns: 42px minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 8px;
   padding-top: 8px;
   border-top: 1px solid #dce5e2;
 }
 
-.fee-memo-field input {
-  height: 39px;
+.fee-memo-field > span {
+  padding-top: 10px;
+}
+
+.fee-memo-field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 62px;
+  resize: vertical;
+  overflow-y: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: 0;
+  padding: 9px 11px;
+  color: var(--ink);
+  background: var(--surface-soft);
+  line-height: 1.45;
+}
+
+.fee-memo-field textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 4px rgba(17, 100, 102, 0.14);
 }
 
 .calculation-strip {
@@ -1861,9 +1882,9 @@ td[data-label="操作"] {
 
 .purchase-price-cell,
 .ledger-no-cell,
+.purchase-date-cell,
 .listing-date-cell,
 .sale-date-cell,
-.sale-days-cell,
 .sale-price-cell,
 .break-even-cell,
 .margin-cell {
@@ -2172,9 +2193,9 @@ td[data-label="操作"] {
   .status-badge,
   .ledger-no-cell,
   .purchase-price-cell,
+  .purchase-date-cell,
   .listing-date-cell,
   .sale-date-cell,
-  .sale-days-cell,
   .sale-price-cell,
   .break-even-cell,
   .profit-cell,

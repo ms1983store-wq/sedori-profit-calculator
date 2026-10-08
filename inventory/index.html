@@ -10,7 +10,7 @@
     />
     <title>せどり在庫帳</title>
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=48" />
+    <link rel="stylesheet" href="./styles.css?v=49" />
   </head>
   <body>
     <main class="app-shell">
@@ -429,7 +429,7 @@
 
             <label class="field fee-memo-field">
               <span>メモ</span>
-              <input id="memoInput" type="text" placeholder="棚番・仕入れ先など" />
+              <textarea id="memoInput" rows="2" placeholder="棚番・仕入れ先など"></textarea>
             </label>
           </section>
 
@@ -516,9 +516,9 @@
                   <th>商品</th>
                   <th>状態</th>
                   <th>仕入れ値</th>
+                  <th>仕入日</th>
                   <th>出品日</th>
                   <th>販売日</th>
-                  <th>販売まで日数</th>
                   <th>販売価格</th>
                   <th>損益分岐点</th>
                   <th>利益</th>
@@ -590,6 +590,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./default-inventory.js?v=3" defer></script>
-    <script src="./app.js?v=47" defer></script>
+    <script src="./app.js?v=49" defer></script>
   </body>
 </html>
